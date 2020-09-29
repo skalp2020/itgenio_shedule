@@ -1,0 +1,341 @@
+.trainer-shedule-students-list{
+	padding: 4px 0 12px 0;
+	border-bottom: 1px solid #ccc;
+}
+.trainer-shedule-students-list .glyphicon-time.half {
+    position: relative;
+}
+
+.trainer-shedule-students-list .glyphicon-time.first {
+    transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    -ms-transform: scaleX(-1);
+}
+.trainer-shedule-students-list .glyphicon-time.half:before {
+    position: relative;
+    z-index: 9;
+    width: 48%;
+    display: block;
+    overflow: hidden;
+}
+.trainer-shedule-students-list .glyphicon-time.half:after {
+    content: "\e023";
+    position: absolute;
+    z-index: 8;
+    color: #bdc3c7;
+    top: 0;
+    left: 0;
+}
+.students-count-label{
+    font-size: 80%;
+    margin-bottom: 4px;
+    color: #aaa;
+}
+.students-count-label .dop{
+    font-size: 70%;
+}
+.trainer-shedule-students-list .students-list{
+	list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 90%;
+}
+.trainer-shedule-students-list .students-list .student{
+    display: flex;
+    padding: 2px 14px;
+}
+.trainer-shedule-students-list .students-list .student:hover{
+    background-color: #f1f1f1;
+}
+.trainer-shedule-students-list .students-list .student > object{
+    flex-grow: 1;
+}
+.trainer-shedule-students-list .students-list a{
+    color: #333;
+}
+.trainer-shedule-students-list .students-list .student-name{
+	display: inline-block;
+	margin: 0 4px;
+	opacity: 0.8;
+    position: relative;
+}
+.trainer-shedule-students-list .students-list li:hover .student-name{
+	opacity: 1;
+}
+.trainer-shedule-students-list .students-list .student-subject{
+	display: inline-block;
+	margin: 0 1px;
+	color: #aaa;
+	font-size: 80%;
+    vertical-align: middle;
+    width: 18px;
+    text-align: center;
+}
+.trainer-shedule-students-list .students-list .student-subject img{
+    height: 14px;
+    opacity: 0.8;
+}
+.trainer-shedule-students-list .students-list student:hover .student-subject img{
+    opacity: 1;
+}
+.trainer-shedule-students-list .students-list .student-language{
+    display: inline-block;
+    margin: 0 0 0 4px;
+    color: #aaa;
+    font-size: 80%;
+    text-transform: uppercase;
+}
+
+.trainer-shedule-students-list .students-list .skill{
+	height: 14px;
+	display: inline-block;
+	vertical-align: baseline;
+	opacity: 0.7;
+	margin: 0 3px;
+}
+.trainer-shedule-students-list .students-list li:hover .skill{
+	opacity: 1;
+}
+.student.student-skipped .student-name {
+    color: #840a0a;
+    text-decoration: line-through;
+}
+.trainer-schedule-lesson-container .cost1-label{
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px;
+    font-size: 75%;
+    color: #178f2e;
+    opacity: 0.7;
+}
+.trainer-schedule-lesson-container .list-group-item:hover .cost1-label{
+    opacity: 1;
+}
+.grid-calendar-item-cell .panel-heading{
+    position: relative;
+}
+.grid-calendar-item-cell .panel-heading .heading-cost{
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 6px;
+    font-size: 80%;
+    color: #178f2e;
+}
+.heading-main-cost{
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #178f2e;
+}
+.heading-main-cost:hover, .heading-main-cost:focus{
+    color: #178f2e;
+}
+.trainer-lesson-list-item.list-group-item .name-block{
+    position: relative;
+}
+.popup_clipboard{
+    display: none;
+    position: absolute;
+    right: 100%;
+    top: -4px;
+    background-color: #ededed;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 1px 4px 6px;
+    cursor: pointer;
+}
+.student-name:hover .popup_clipboard, .trainer-lesson-list-item.list-group-item .name-block:hover .popup_clipboard{
+    display: block;
+}
+.popup_clipboard:hover{
+    background-color: #fff;
+}
+.chat-window .chat-message{
+    align-items: center!important;
+}
+.chat-window .chat-container .right {
+    grid-template-rows: 44px 1fr auto auto!important;
+}
+.MuiIconButton-emoji .MuiIconButton-label{
+    font-size: 200%;
+    line-height: 1em;
+    margin-top: -4px;
+}
+.popup-emoji{
+    display: none;
+    padding: 6px 12px;
+    font-size: 18px;
+    max-height: 80px;
+    overflow-y: auto;
+}
+.popup-emoji > * {
+    display: inline-block;
+    padding: 2px;
+    opacity: 0.7;
+    cursor: pointer;
+}
+.popup-emoji > *:hover{
+    opacity: 1;
+}
+.btn_show_shedule{
+    display: block;
+    position: relative;
+    top: -23px;
+    font-size: 12px;
+    padding: 4px;
+    text-decoration: none!important;
+    opacity: 0.7;
+    width: 22px;
+    margin-left: auto;
+    float: none;
+    text-align: right;
+    height: 0;
+    padding-bottom: 0;
+}
+.btn_show_shedule:hover{
+    text-decoration: none;
+    opacity: 1;
+}
+.chat-window-fixed{
+    position: fixed;
+    height: 100%!important;
+    top: 0!important;
+    right: 0!important;
+    bottom: 0!important;
+}
+.chat-window .chat-title .title{
+    flex-grow: 1;
+}
+.chat-window .chat-btn-fixed{
+    margin-right: 8px;
+    line-height: 18px;
+    color: hsla(0,0%,100%,.67);
+    opacity: 1;
+    text-shadow: none;
+    -webkit-appearance: none;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    font-size: 21px;
+    font-weight: 700;
+    outline: none;
+}
+.chat-window .chat-btn-fixed:hover, .chat-window .chat-btn-fixed:focus{
+    color: hsla(0,0%,100%,1);
+}
+.info_additional{
+    font-size: 90%;
+    color: #aaa;
+}
+.heading-main-cost-icon::before{
+    content: "▼";
+}
+.heading-main-cost-icon.active::before{
+    content: "▲";
+}
+.heading-main-cost-more{
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    z-index: 1;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 90%;
+}
+.heading-main-cost-more.active{
+    display: block;
+}
+.heading-main-cost-more .cost-item{
+    margin-bottom: 8px;
+}
+.heading-main-cost-more .cost-item .option{
+    font-weight: 500;
+}
+.heading-main-cost-more .cost-item .value{
+    font-weight: bold;
+    color: #178f2e;
+}
+.student_timer{
+    display: flex;
+    align-items: center;
+    position: absolute;
+    right: 45px;
+    bottom: 13px;
+    opacity: 0.3;
+}
+.student_timer:hover, .student_timer.active{
+    opacity: 1;
+}
+.student_timer .time_label{
+    font-weight: bold;
+    padding: 0;
+    border-radius: 2px;
+    background: #fff;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+    border-top-style: solid!important;
+    width: 50px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.student_timer .time_label.active{
+    display: flex;
+}
+.student_timer .time_input{
+    display: none;
+}
+.student_timer .time_input.active{
+    display: flex;
+}
+.student_timer .time_input input{
+    width: 50px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 1em;
+    padding: 1px 0 2px;
+}
+.student_timer .time_buttons{
+
+}
+.student_timer .time_buttons button{
+    padding: 0px 2px;
+    font-size: 75%;
+    margin: 0 1px;
+}
+.student_timer .time_buttons .btn_play{
+    color: #50965c;
+}
+.student_timer .time_buttons .btn_pause{
+    color: #edb200;
+}
+.student_timer .time_buttons .btn_stop{
+    color: #a10b0b;
+}
+.student_timer .time_buttons .btn_play:disabled,
+.student_timer .time_buttons .btn_pause:disabled,
+.student_timer .time_buttons .btn_stop:disabled{
+    color: #999;
+    opacity: 0.6;
+}
+.student_timer_over{
+    box-shadow: 0 0 12px rgba(255,50,0,0.8);
+}
+
+.users_favorites a span{
+    font-size: 90%;
+    opacity: 0.7;
+}
+.users_favorites .today a{
+    color: #178f2e;
+    font-weight: bold;
+}

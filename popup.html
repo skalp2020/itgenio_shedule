@@ -1,0 +1,140 @@
+<!DOCTYPE doctype html>
+<html>
+    <head>
+        <title>
+            ItGen.io
+        </title>
+        <meta charset="utf-8"/>
+        <style type="text/css">
+            body {
+        margin: 10px;
+        white-space: nowrap;
+      }
+
+      h1 {
+        font-size: 15px;
+      }
+      .section{
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 8px;
+        margin: 12px 0;
+      }
+      .title {
+        font-size: 13px;
+        font-style: italic;
+      }
+      .title2{
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+
+      #container {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+      }
+      #status{
+        color: #09b92a;
+        font-weight: bold;
+      }
+      input[type="text"] {
+        width: 40px;
+      }
+      .option1{
+        margin: 4px 0;
+      }
+        </style>
+        <script src="popup.js"></script>
+    </head>
+    <body>
+        <h1>
+            Itgenio. Доп. возможности
+        </h1>
+        <div class="title">
+            Выводит список учеников в недельном расписании,<br />а также добавляет много "плюшек" в систему
+        </div>
+        <div class="section">
+            <div class="title2">На странице расписания:</div>
+            <div class="option1">
+                <label>
+                    <input id="show_count" type="checkbox" />
+                    количество учеников
+                </label>
+            </div>
+            <div class="option1">
+                <label>
+                    <input id="show_language" type="checkbox" />
+                        язык
+                </label>
+            </div>
+            <div class="option1">
+                <label>
+                    <input id="show_subject" type="checkbox" />
+                        предмет (направление)
+                </label>
+            </div>
+            <div class="option1">
+                <label>
+                    <input id="show_skill" type="checkbox" />
+                        уровень самостоятельности
+                </label>
+            </div>
+            <div class="option1">
+                <label>
+                    <input id="show_cost" type="checkbox" />
+                        оплату
+                </label>
+            </div>
+            <div class="option2">
+                <label>
+                    Валюта
+                </label>
+                <select id="currency_id">
+                    <option value="byn">Белорусский рубль</option>
+                    <option value="usd">Доллар США</option>
+                    <option value="eur">Евро</option>
+                    <option value="pln">Польский злотый</option>
+                    <option value="rub">Российский рубль</option>
+                    <option value="uah">Украинская гривна</option>
+                </select>
+            </div>
+            <div class="option1">
+                <label>
+                    день выдачи зарплаты
+                    <input id="date_pay" type="text" />
+                </label>
+            </div>
+            <div class="option1">
+                <label>
+                    <input id="show_month" type="checkbox" />
+                        расписание на месяц (4 недели)
+                </label>
+            </div>
+        </div>
+        <div class="section">
+            <div class="title2">На странице профиля:</div>
+            <div class="option2">
+                <label>
+                    Валюта
+                </label>
+                <select id="currency_profile_id">
+                    <option value="byn">Белорусский рубль</option>
+                    <option value="usd">Доллар США</option>
+                    <option value="eur">Евро</option>
+                    <option value="pln">Польский злотый</option>
+                    <option value="rub">Российский рубль</option>
+                    <option value="uah">Украинская гривна</option>
+                </select>
+            </div>
+        </div>
+        
+        <div>
+            <button id="btn_save">
+                Сохранить
+            </button>
+        </div>
+        <div id="status">
+        </div>
+    </body>
+</html>
