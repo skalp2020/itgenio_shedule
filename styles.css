@@ -282,7 +282,7 @@
     border-radius: 4px;
     border: 1px solid #aaa;
     border-top-style: solid!important;
-    width: 50px;
+    width: 60px;
     display: none;
     align-items: center;
     justify-content: center;
@@ -297,7 +297,7 @@
     display: flex;
 }
 .student_timer .time_input input{
-    width: 50px;
+    width: 60px;
     border: 1px solid #aaa;
     border-radius: 4px;
     text-align: center;
@@ -338,4 +338,11 @@
 .users_favorites .today a{
     color: #178f2e;
     font-weight: bold;
+}
+
+.trainer-schedule-lesson-container .list-group-item{
+    font-weight: bold;
+}
+.trainer-schedule-lesson-container .list-group-item > div > span > * {
+    font-weight: normal;
 }

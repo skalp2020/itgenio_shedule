@@ -854,13 +854,18 @@ function timerStudentTimer(){
                 let d = new Date();
                 let d2 = new Date(timers[i].dataset.time);
                 let diff = Math.round((d2-d)/1000);
-                if (diff<0) {
-                    diff=0;
-                }
-                if (diff==0) {
+                // if (diff<0) {
+                //     diff=0;
+                // }
+                if (diff<=0) {
                     timers[i].parentNode.classList.add('student_timer_over');
                 }
-                time_label.innerHTML = Math.floor(diff/60)+':'+((diff%60<10)?"0":"")+(diff%60);
+                let znak = '';
+                if (diff<0) {
+                    znak = '-';
+                    diff = -diff;
+                }
+                time_label.innerHTML = znak + Math.floor(diff/60)+':'+((diff%60<10)?"0":"")+(diff%60);
                 time_label.classList.add('active');
                 time_input.classList.remove('active');
                 btn_play.disabled = true;
