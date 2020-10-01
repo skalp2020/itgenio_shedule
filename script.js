@@ -437,7 +437,8 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div) {
             if (hours > 5 && hours <= 8) cost += pay_base * 2;
             if (hours >= 1 && hours <= 5) cost += pay_base * 4;
             //if (pay_base > 5) cost *= 1.2;
-            if ((max_slots / 2) * pay_base > cost) cost = (max_slots / 2) * pay_base;
+			// Если занятие пустое не учитываем его. Если зароботок меньше мин.ставки то учитываем только мин.ставку.
+            if ((max_slots / 2) * pay_base > cost && ocenki[0] > 0) cost = (max_slots / 2) * pay_base;
         }
         if (option_show_count) {
             let div2 = document.createElement("span");
