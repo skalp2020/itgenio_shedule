@@ -373,7 +373,12 @@ function addLessonToHtml(lesson, id, className = '') {
                         outer_text += '<span class="label label-danger"><span class="glyphicon glyphicon-lock"></span> Заблокировано</span>';
                     }
                 } else {
-                    outer_text += '<span class="label label-primary">Будет</span>';
+					let time = Date();
+					let lesson_time = new Date(lesson.st.s);
+					if (lesson_time < time)
+						outer_text += '<span class="label label-info">Идёт</span>';
+					else
+						outer_text += '<span class="label label-primary">Будет</span>';
                 }
             }
             label[i].outerHTML = outer_text;
