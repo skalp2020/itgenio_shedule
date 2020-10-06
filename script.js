@@ -365,19 +365,18 @@ function addLessonToHtml(lesson, id, className = '') {
             if ('finishedAt' in lesson) {
                 outer_text += '<span class="label label-success">Завершено</span>';
             } else {
-                if ('cancelled' in lesson || 'blocked' in lesson) {
+                if ('cancelled' in lesson || 'blocked' in lesson || 'startedAt' in lesson) {
                     if ('cancelled' in lesson && lesson.cancelled) {
                         outer_text += '<span class="label label-warning"><span class="glyphicon glyphicon-ban-circle"></span> Отменено</span>';
                     }
                     if ('blocked' in lesson && lesson.blocked) {
                         outer_text += '<span class="label label-danger"><span class="glyphicon glyphicon-lock"></span> Заблокировано</span>';
                     }
+					if ('startedAt' in lesson && lesson.startedAt) {
+                        outer_text += '<span class="label label-info">Идёт</span>';
+                    }
                 } else {
-					if ((new Date(lesson.st.s)).valueOf() < (new Date()).valueOf()){
-						outer_text += '<span class="label label-info">Идёт</span>';
-					} else {
-						outer_text += '<span class="label label-primary">Будет</span>';
-					}
+					outer_text += '<span class="label label-primary">Будет</span>';
                 }
             }
             label[i].outerHTML = outer_text;
