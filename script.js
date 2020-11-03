@@ -35,8 +35,34 @@ var option_date_pay = 5;
 var skills_data = { "default": "images/default.png" };
 var coefs_data = { "default": "1" };
 var skills_resource = 'https://itgenio.div42.ru/';
+var balanse_history_was = false;
+var balanse_history = null;
 
 var lesson_id = '';
+
+const MONTH = {
+    0: 'январь',
+    1: 'февраль',
+    2: 'март',
+    3: 'апрель',
+    4: 'май',
+    5: 'июнь',
+    6: 'июль',
+    7: 'август',
+    8: 'сентябрь',
+    9: 'октябрь',
+    10: 'ноябрь',
+    11: 'декабрь'
+}
+const DOW = {
+    0: "воскресенье",
+    1: "понедельник",
+    2: "вторник",
+    3: "среда",
+    4: "четверг",
+    5: "пятница",
+    6: "суббота"
+}
 
 main_timer = setInterval(function() {
     if (url != location.href) {
@@ -181,6 +207,50 @@ function startLoadSheduleAdmin() {
         }, 100);;
     }
 }
+
+function startLoadBalanseHistory() {
+    if (socket1) {
+        socket1.close();
+        socket1 = null;
+    }
+    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + (Math.floor(Math.random() * 800) + 101) + "/" + makeid(8) + "/websocket");
+    socket1.onopen = function(e) {
+        //getWeekNumber();
+        socket1.send('["{\\"msg\\":\\"connect\\",\\"version\\":\\"1\\",\\"support\\":[\\"1\\",\\"pre2\\",\\"pre1\\"]}"]');
+    };
+    socket1.onmessage = function(event) {
+        if (event.data[0] == 'a') {
+            let request = JSON.parse(JSON.parse(event.data.substr(1))[0]);
+            if (request.msg == 'connected') {
+                //Подключились
+                session_id = request.session;
+                //Отправляем запрос на обновление данных пользователя
+                operation = 'login';
+                loginResume();
+            } else if (request.msg == 'added') {
+                //Получили данные пользователя
+                if (request.collection == 'users' && operation == 'login') {
+                    //console.log(request);
+                    user_id = request.id;
+                    if (request.fields.payBase) pay_base = request.fields.payBase;
+                    if (request.fields.maxSlots) max_slots = request.fields.maxSlots;
+                    tz = moment().tz(request.fields.tz)._offset / 60;
+                    //Запрашиваем историю баланса
+                    sendRequestBalanseHistory();
+                } 
+            } else if (request.msg == 'result' && request.id == 27) {
+                balanse_history = 1;
+                //Получили историю баланса
+                //Рисуем расписание
+
+                balanse_history = request.result;
+                socket1.close();
+            }
+        }
+    };
+}
+
+
 chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
     'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
     'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay'], function(items) {
@@ -716,7 +786,7 @@ function getSendId() {
     if (last.indexOf("?t=") != -1) {
         last = last.slice(0, last.indexOf("?t="));
     }
-    if (last.length > 0 && last.indexOf("schedule") == -1) send_id = last;
+    if (last.length > 0 && last.indexOf("schedule") == -1 && last.indexOf("profile") == -1) send_id = last;
     return send_id;
 }
 studentCopyClipboard = function() {
@@ -1200,7 +1270,7 @@ function setOptionCurrencyProfileRate(){
 
 all_timer = setInterval(function() {
     checkNewPayments();
-    // checkPaymentsPanel();
+    checkPaymentsPanel();
 }, 100);
 
 Date.prototype.daysInMonth = function() {
@@ -1377,7 +1447,126 @@ function startLoadFavoriteTrainers(){
 //Если нужно, читаем балансы
 function checkPaymentsPanel(){
     let elems = document.querySelectorAll(".payments-employee-payment");
-    if (elems.length>0) {
+    let elems2 = document.querySelectorAll(".payments-employee-payment-history");
+    if (elems.length>0 && elems2.length==0) {
+        if (!balanse_history_was) {
+            balanse_history_was = true;
+            startLoadBalanseHistory();
+        }
+        if (balanse_history) {
+            setOptionCurrencyProfileRate();
+            el_parent = document.createElement("div");
+            el_parent.className = "payments-employee-payment-history";
+            document.querySelector("#home").appendChild(el_parent);
 
+            let months = [];
+            let dows = [];
+            for (let elem of balanse_history) {
+                if (elem.val<0) continue;
+
+                let d = null;
+                let type = 0;
+                if (elem.w!=undefined) {
+                    d = new Date(elem.w);
+                    type = 0;
+                } else {
+                    d = new Date(elem.createdAt['$date']);
+                    type = 1;
+                }
+                let date_day = d.getFullYear() + "_" + d.getMonth() + "_" + d.getDate();
+                let date_month = d.getFullYear() + "_" + d.getMonth();
+                let date_year = d.getFullYear();
+                let date_dow = d.getDay();
+
+                if (months[date_month]==undefined) months[date_month] = {title: MONTH[d.getMonth()] + " " + d.getFullYear(), val:0, count: 0, val2 : 0};
+                if (type==0) {
+                    months[date_month].val += elem.val;
+                    months[date_month].count++;
+
+                    if (dows[date_dow]==undefined) dows[date_dow] = {title: DOW[date_dow], val:0, count: 0};
+                    dows[date_dow].val += elem.val;
+                    dows[date_dow].count++;
+                }
+                else
+                    months[date_month].val2 += elem.val;
+                
+            }
+            let html = '';
+            let temp = 0;
+            html += '<div class="stat_balanse_history">';
+
+            html += '<div class="stat1">';
+            html += '<div class="title_1">Статистика по месяцам</div>';
+            html += '<table class="table table-hover">';
+            html += '<tr>';
+            html += '<th>Месяц</th>';
+            html += '<th>Занятий</th>';
+            html += '<th>В среднем за занятие</th>';
+            html += '<th>За проведение занятий</th>';
+            html += '<th>Доп. начисления</th>';
+            html += '<th>Итого</th>';
+            html += '</tr>';
+            for (let elem in months) {
+                html += '<tr>';
+                html += '<td>' + months[elem].title + '</td>';
+                html += '<td>' + months[elem].count + '</td>';
+                temp = months[elem].val / months[elem].count;
+                html += '<td>' + temp.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(temp*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                html += '<td>' + months[elem].val.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(months[elem].val*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                html += '<td>' + months[elem].val2.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(months[elem].val2*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                temp = months[elem].val + months[elem].val2;
+                html += '<td>' + temp.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(temp*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            html += '</div>';
+
+
+            html += '<div class="stat2">';
+            html += '<div class="title_1">Статистика по дням недели</div>';
+            html += '<table class="table table-hover">';
+            html += '<tr>';
+            html += '<th>День недели</th>';
+            html += '<th>Заработано в среднем</th>';
+            html += '</tr>';
+            for (let elem in dows) {
+                html += '<tr>';
+                html += '<td>' + dows[elem].title + '</td>';
+                temp = dows[elem].val / dows[elem].count;
+                html += '<td>' + temp.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(temp*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            html += '</div>';
+
+            html += '</div>';
+            el_parent.innerHTML = html;
+        }
     }
 }

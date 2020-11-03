@@ -346,3 +346,21 @@
 .trainer-schedule-lesson-container .list-group-item > div > span > * {
     font-weight: normal;
 }
+.stat_balanse_history{
+    display: flex;
+    flex-direction: row;
+}
+.stat_balanse_history > * {
+    padding: 12px;
+}
+.stat_balanse_history .stat1 {
+    flex-basis: 70%;
+}
+.stat_balanse_history .stat2 {
+    flex-basis: 30%;
+}
+.title_1{
+    font-weight: bold;
+    margin: 20px 8px;
+    font-size: 120%;
+}
