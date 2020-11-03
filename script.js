@@ -33,6 +33,7 @@ var option_currency_profile_mark = '$';
 var option_currency_profile_rate = 1;
 var option_date_pay = 5;
 var skills_data = { "default": "images/default.png" };
+var coefs_data = { "default": "1" };
 var skills_resource = 'https://itgenio.div42.ru/';
 
 var lesson_id = '';
@@ -226,6 +227,10 @@ function sendRequestBalanse() {
     socket1.send('["{\\"msg\\":\\"method\\",\\"method\\":\\"api.payments.getBalanceForEmployee\\",\\"params\\":[{\\"employeeId\\":\\"' + getSendId() + '\\"}],\\"id\\":\\"26\\"}"]');
 }
 
+function sendRequestBalanseHistory() {
+    socket1.send('["{\\"msg\\":\\"method\\",\\"method\\":\\"api.payments.getEmployeeBalanceHistory\\",\\"params\\":[{\\"employeeId\\":\\"' + getSendId() + '\\"}],\\"id\\":\\"27\\"}"]');
+}
+
 function sendRequestStudents() {
     students_list = {};
     students_id = [];
@@ -244,8 +249,6 @@ function sendRequestStudents() {
 }
 
 function addLessonToList(lessons, id) {
-    //
-    
 
     for (let i = 0; i <= lessons.finishedSlots.length; i++) {
         if (lessons.finishedSlots[i]) {
@@ -282,31 +285,38 @@ function calcCost(lesson) {
     let ocenki = [0, 0, 0, 0];
     let ocenki_ru = [0, 0, 0, 0];
     let ocenki_en = [0, 0, 0, 0];
-    for (var i = 0; i < lesson.c.length; i++) {
-        if (lesson.c[i].s.indexOf("skipped") == -1) {
-            if (lesson.c[i].type >= 1 && lesson.c[i].type <= 3) {
-                ocenki[lesson.c[i].type]++;
-                ocenki[0]++;
-                if (lesson.c[i].lang == 'ru') {
-                    ocenki_ru[lesson.c[i].type]++;
-                }
-                if (lesson.c[i].lang == 'en') {
-                    ocenki_en[lesson.c[i].type]++;
+    let coef = 1;
+    let coef2 = 1;
+    let cost = 0;
+    let count = 0;
+    if (pay_base > 0) {
+        for (var i = 0; i < lesson.c.length; i++) {
+            if (lesson.c[i].s.indexOf("skipped") == -1) {
+                if (lesson.c[i].type >= 1 && lesson.c[i].type <= 3) {
+                    coef = 1;
+                    if (coefs_data[lesson.c[i].subject]!=undefined) {
+                        coef = parseFloat(coefs_data[lesson.c[i].subject]);
+                    }
+                    coef2 = 1;
+                    if (lesson.c[i].lang == 'en') {
+                        coef2 = 2;
+                    }
+                    cost += pay_base * coef * coef2;
+                    count++;
                 }
             }
         }
-    }
-    let cost = 0;
-    if (pay_base > 0) {
-        cost = ocenki_ru[3] * pay_base + ocenki_ru[1] * pay_base * 0.7 + ocenki_ru[2] * pay_base * 0.7 + ocenki_en[3] * pay_base * 2 + ocenki_en[1] * pay_base * 0.7 * 2 + ocenki_en[2] * pay_base * 0.7 * 2;
-        let date = new Date(lesson.st.s);
-        let fromDate = new Date();
-        let hours = date.getHours() + fromDate.getTimezoneOffset() / 60 + tz;
-        if (hours >= 22 || hours < 1) cost += pay_base * 2;
-        if (hours > 5 && hours <= 8) cost += pay_base * 2;
-        if (hours >= 1 && hours <= 5) cost += pay_base * 4;
-        //if (pay_base > 5) cost *= 1.2;
-        if ((max_slots / 2) * pay_base > cost) cost = (max_slots / 2) * pay_base;
+        if (count>0) {
+            let date = new Date(lesson.st.s);
+            let fromDate = new Date();
+            let hours = date.getHours() + fromDate.getTimezoneOffset() / 60 + tz;
+            if (hours >= 22 || hours < 1) cost += pay_base * 2;
+            if (hours > 5 && hours <= 8) cost += pay_base * 2;
+            if (hours >= 1 && hours <= 5) cost += pay_base * 4;
+            if ((max_slots / 2) * pay_base > cost) cost = (max_slots / 2) * pay_base;
+        } else {
+            cost = 0;
+        }
     }
     return cost;
 }
@@ -319,14 +329,14 @@ function drawLessons() {
         return a.lesson.st.s - b.lesson.st.s;
     });
     for (var i = 0; i < lessons_list.length; i++) {
-        addLessonToHtml(lessons_list[i].lesson, lessons_list[i].id);
+        addLessonToHtml(lessons_list[i].lesson, lessons_list[i].id, '', lessons_list[i].cost);
     }
     if (option_show_cost && pay_base > 0) {
         drawCost();
     }
 }
 
-function addLessonToHtml(lesson, id, className = '') {
+function addLessonToHtml(lesson, id, className = '', cost = 0) {
     if (lesson.id != getSendId()) return;
     //console.log(id, lesson);
     var id_day1 = Math.round(lesson.w / 86400000);
@@ -408,15 +418,15 @@ function addLessonToHtml(lesson, id, className = '') {
             }
         }
         if (div_to_add) {
-            addLessonToHTML2(div_to_add, div_title, lesson, div);
+            addLessonToHTML2(div_to_add, div_title, lesson, div, cost);
         }
     }
     
 }
 
-function addLessonToHTML2(div_to_add, div_title, lesson, div) {
+function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
     //console.log(lesson);
-    let cost = 0;
+    // console.log(cost);
     if (div_title != null) {
         let ocenki = [0, 0, 0, 0];
         let ocenki_ru = [0, 0, 0, 0];
@@ -434,19 +444,6 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div) {
                     }
                 }
             }
-        }
-        //Считаем стоимость занятия
-        if (pay_base > 0) {
-            cost = ocenki_ru[3] * pay_base + ocenki_ru[1] * pay_base * 0.7 + ocenki_ru[2] * pay_base * 0.7 + ocenki_en[3] * pay_base * 2 + ocenki_en[1] * pay_base * 0.7 * 2 + ocenki_en[2] * pay_base * 0.7 * 2;
-            let date = new Date(lesson.st.s);
-            let fromDate = new Date();
-            let hours = date.getHours() + fromDate.getTimezoneOffset() / 60 + tz;
-            if (hours >= 22 || hours < 1) cost += pay_base * 2;
-            if (hours > 5 && hours <= 8) cost += pay_base * 2;
-            if (hours >= 1 && hours <= 5) cost += pay_base * 4;
-            //if (pay_base > 5) cost *= 1.2;
-			// Если занятие пустое не учитываем его. Если зароботок меньше мин.ставки то учитываем только мин.ставку.
-            if ((max_slots / 2) * pay_base > cost && ocenki[0] > 0) cost = (max_slots / 2) * pay_base;
         }
         if (option_show_count) {
             let div2 = document.createElement("span");
@@ -1200,6 +1197,7 @@ function setOptionCurrencyProfileRate(){
 
 all_timer = setInterval(function() {
     checkNewPayments();
+    // checkPaymentsPanel();
 }, 100);
 
 Date.prototype.daysInMonth = function() {
@@ -1253,6 +1251,13 @@ getJSON('https://itgenio.div42.ru/skills.json', '',  function(err, data) {
         console.error(err);
     } else {
         skills_data = data;
+    }
+});
+getJSON('https://itgenio.div42.ru/coefs.json', '',  function(err, data) {
+    if (err != null) {
+        console.error(err);
+    } else {
+        coefs_data = data;
     }
 });
 
@@ -1363,4 +1368,13 @@ function startLoadFavoriteTrainers(){
             waitToCollapseFavoriteTrainers();
         }
     });
+}
+
+
+//Если нужно, читаем балансы
+function checkPaymentsPanel(){
+    let elems = document.querySelectorAll(".payments-employee-payment");
+    if (elems.length>0) {
+
+    }
 }
