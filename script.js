@@ -301,7 +301,10 @@ function calcCost(lesson) {
                     if (lesson.c[i].lang == 'en') {
                         coef2 = 2;
                     }
-                    cost += pay_base * coef * coef2;
+                    let coef3 = 1;
+                    if (lesson.c[i].type==1 || lesson.c[i].type==2) coef3 = 0.7;
+                    
+                    cost += pay_base * coef * coef2 * coef3;
                     count++;
                 }
             }
