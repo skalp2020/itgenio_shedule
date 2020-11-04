@@ -1483,8 +1483,9 @@ function checkPaymentsPanel(){
                     months[date_month].val += elem.val;
                     months[date_month].count++;
 
-                    if (dows[date_dow]==undefined) dows[date_dow] = {title: DOW[date_dow], val:0, count: 0};
+                    if (dows[date_dow]==undefined) dows[date_dow] = {title: DOW[date_dow], val:0, count: 0, days: []};
                     dows[date_dow].val += elem.val;
+                    if (dows[date_dow].days.indexOf(date_day)==-1) dows[date_dow].days.push(date_day);
                     dows[date_dow].count++;
                 }
                 else
@@ -1548,17 +1549,27 @@ function checkPaymentsPanel(){
             html += '<table class="table table-hover">';
             html += '<tr>';
             html += '<th>День недели</th>';
-            html += '<th>Заработано в среднем</th>';
+            html += '<th>В среднем за урок</th>';
+            html += '<th>В среднем за день</th>';
             html += '</tr>';
             for (let elem in dows) {
                 html += '<tr>';
                 html += '<td>' + dows[elem].title + '</td>';
+
                 temp = dows[elem].val / dows[elem].count;
                 html += '<td>' + temp.toFixed(2) + '$';
                 if (option_currency_profile_mark!='$') {
                     html += '<span class="info_additional"> / ' +(temp*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
                 }
                 html += '</td>'
+
+                temp = dows[elem].val / dows[elem].days.length;
+                html += '<td>' + temp.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(temp*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
                 html += '</tr>';
             }
 
