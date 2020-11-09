@@ -475,7 +475,7 @@ function addLessonToHtml(lesson, id, className = '', cost = 0) {
         var div_title = null;
         for (var i = el_child.length - 1; i >= 0; i--) {
             if (el_child[i].className == "list-group-item") {
-                div_to_add = el_child[i];
+                div_to_add = el_child[i].parentNode;
             }
         }
         if (div_to_add != null) {
