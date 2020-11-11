@@ -1245,12 +1245,30 @@ function checkCurrencies(){
         var xmlhttp = new XMLHttpRequest();
         var url = "https://www.floatrates.com/daily/usd.json";
 
+        var xmlhttp_BYN = new XMLHttpRequest();
+        var url_BYN = "https://www.nbrb.by/api/exrates/rates?periodicity=0";
+
         xmlhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
                 let myArr = JSON.parse(this.responseText);
                 localStorage.setItem('currency.date', new Date());
                 for (let cur in myArr) {
                     localStorage.setItem('currency.'+cur, myArr[cur].rate);
+                }
+
+                xmlhttp_BYN.open("GET", url_BYN, true);
+                xmlhttp_BYN.send();
+            } 
+        };
+
+
+        xmlhttp_BYN.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                let myArr = JSON.parse(this.responseText);
+                for (let cur in myArr) {
+                    if (myArr[cur].Cur_Abbreviation=="USD") {
+                        localStorage.setItem('currency.byn', myArr[cur].Cur_OfficialRate);
+                    }
                 }
             } 
         };
