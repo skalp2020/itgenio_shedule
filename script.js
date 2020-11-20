@@ -23,6 +23,7 @@ var option_show_language = false;
 var option_show_subject = true;
 var option_show_skill = true;
 var option_show_cost = false;
+var option_show_coef = false;
 var option_show_month = false;
 var option_show_smiles = false;
 var option_currency_id = true;
@@ -252,13 +253,14 @@ function startLoadBalanseHistory() {
 
 
 chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
-    'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
+    'skalp_show_skill', 'skalp_show_cost', 'skalp_show_coef', 'skalp_show_month', 'skalp_show_smiles', 
     'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay'], function(items) {
     if (items['skalp_show_count'] != null) option_show_count = items['skalp_show_count'];
     if (items['skalp_show_language'] != null) option_show_language = items['skalp_show_language'];
     if (items['skalp_show_subject'] != null) option_show_subject = items['skalp_show_subject'];
     if (items['skalp_show_skill'] != null) option_show_skill = items['skalp_show_skill'];
     if (items['skalp_show_cost'] != null) option_show_cost = items['skalp_show_cost'];
+    if (items['skalp_show_coef'] != null) option_show_coef = items['skalp_show_coef'];
     if (items['skalp_show_month'] != null) option_show_month = items['skalp_show_month'];
     if (items['skalp_date_pay'] != null) option_date_pay = items['skalp_date_pay'];
     //if (items['skalp_show_smiles'] != null) option_show_smiles = items['skalp_show_smiles'];
@@ -594,7 +596,7 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
         if (lesson.c[i].type == "2") {
             text += ' half';
         }
-        text += '"></span>';
+        text += '" style="margin: 0 1px;"></span>';
         //Иконка
         if (option_show_skill) {
             text += '<img src="/img/' + score + '.png" alt="" class="skill">';
@@ -611,10 +613,14 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
                 if (skills_data[lesson.c[i].subject]!=undefined) {
                     skill_image = skills_data[lesson.c[i].subject];
                 }
-                text += '<span class="student-subject student-subject-' + lesson.c[i].subject + '"><img src="' + skills_resource + skill_image + '" title="' + skills_list[lesson.c[i].subject] + '"></span>';
+                text += '<span class="student-subject student-subject-' + lesson.c[i].subject + '"><img src="' + skills_resource + skill_image + '" title="' + skills_list[lesson.c[i].subject] + '" style="object-fit: contain; width: 14px; height: 14px"></span>';
             }
         }
-        //Ученик
+		//Коэффициент
+		if (option_show_coef){
+			text += '<span class="coef" title="Коэффициент">[' + parseFloat(coefs_data[lesson.c[i].subject]) + ']</span>';
+        }
+		//Ученик
         text += '<span class="student-name"><a href="/profile/' + student.id + '" class="title-name">' + student.lastName + ' ' + student.firstName + '</a><a onclick="return false" class="popup_clipboard" title="Скопировать в буфер обмена">&#9997;</a></span>';
 
         let li = document.createElement("li");

@@ -13,12 +13,67 @@ function getCurrentTabUrl(callback) {
 
 document.addEventListener('DOMContentLoaded', () => {
     getCurrentTabUrl((url) => {
-        var btn_save = document.getElementById('btn_save');
-        
-        btn_save.addEventListener('click', () => {
+        document.getElementById('show_count').addEventListener('click', () => {
+            saveOptions();
+        });
+		document.getElementById('show_language').addEventListener('click', () => {
             saveOptions()
         });
-
+		document.getElementById('show_subject').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('show_cost').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('show_coef').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('show_month').addEventListener('click', () => {
+            saveOptions()
+        });
+		
+		
+		document.getElementById('currency_id').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('currency_profile_id').addEventListener('click', () => {
+            saveOptions()
+        });
+		
+		
+		
+		/*
+		// контекстное меню
+		document.getElementById('byn').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('usd').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('eur').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('pln').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('rub').addEventListener('click', () => {
+            saveOptions()
+        });
+		document.getElementById('uah').addEventListener('click', () => {
+            saveOptions()
+        });
+		
+		*/
+		
+		document.getElementById('form_dare_pay').addEventListener('keyup', () => {
+			saveOptions()
+        });
+		/*
+		document.getElementById('btn_save').addEventListener('click', () => {
+            saveOptions()
+        });
+		*/
+		//setTimeout(restoreOptions, 150)
         restoreOptions();
     });
 });
@@ -37,6 +92,8 @@ function saveOptions() {
     items_to_save["skalp_show_skill"] = show_skill.checked;
     var show_cost = document.getElementById("show_cost");
     items_to_save["skalp_show_cost"] = show_cost.checked;
+    var show_coef = document.getElementById("show_coef");
+    items_to_save["skalp_show_coef"] = show_coef.checked;
     var show_month = document.getElementById("show_month");
     items_to_save["skalp_show_month"] = show_month.checked;
     // var show_smiles = document.getElementById("show_smiles");
@@ -63,7 +120,7 @@ function restoreOptions() {
 	var items_loaded = {};
 
     chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
-        'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
+        'skalp_show_skill', 'skalp_show_cost', 'skalp_show_coef', 'skalp_show_month', 'skalp_show_smiles', 
         'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay'], function(items) {
     	show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
@@ -89,6 +146,12 @@ function restoreOptions() {
 		if (items['skalp_show_cost']!= null) show_cost = items['skalp_show_cost'];
 		var costCheckbox = document.getElementById("show_cost");
         costCheckbox.checked = show_cost;
+		
+        show_coef = false;
+		if (items['skalp_show_coef']!= null) show_coef = items['skalp_show_coef'];
+		var costCheckbox = document.getElementById("show_coef");
+        costCheckbox.checked = show_coef;
+
 
         show_month = false;
 		if (items['skalp_show_month']!= null) show_month = items['skalp_show_month'];

@@ -86,6 +86,12 @@
                         оплату
                 </label>
             </div>
+			<div class="option1">
+                <label>
+                    <input id="show_coef" type="checkbox" />
+                        коэффициент
+                </label>
+            </div>
             <div class="option2">
                 <label>
                     Валюта
@@ -101,8 +107,10 @@
             </div>
             <div class="option1">
                 <label>
-                    день выдачи зарплаты
-                    <input id="date_pay" type="text" />
+                    
+					<form id="form_dare_pay">
+					День выдачи зарплаты <input id="date_pay" type="text" />
+					</form>
                 </label>
             </div>
             <div class="option1">
@@ -128,12 +136,13 @@
                 </select>
             </div>
         </div>
-        
+        <!--
         <div>
             <button id="btn_save">
                 Сохранить
             </button>
         </div>
+		-->
         <div id="status">
         </div>
     </body>

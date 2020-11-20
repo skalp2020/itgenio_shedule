@@ -74,7 +74,8 @@
 }
 .trainer-shedule-students-list .students-list .student-subject img{
     height: 14px;
-    opacity: 0.8;
+    opacity: 0.7;
+	margin: 0 1px;
 }
 .trainer-shedule-students-list .students-list student:hover .student-subject img{
     opacity: 1;
@@ -92,8 +93,20 @@
 	display: inline-block;
 	vertical-align: baseline;
 	opacity: 0.7;
-	margin: 0 3px;
+	margin: 0 1px;
 }
+
+.trainer-shedule-students-list .students-list .coef{
+	font-size:7px;
+	color:#808080; 
+	height: 14px;
+	display: inline-block;
+	vertical-align: baseline;
+	opacity: 0.7;
+	padding-top:4px;
+	margin: 0 1px;
+}
+
 .trainer-shedule-students-list .students-list li:hover .skill{
 	opacity: 1;
 }
