@@ -32,6 +32,7 @@ var option_currency_profile_id = true;
 var option_currency_profile_mark = '$';
 var option_currency_profile_rate = 1;
 var option_date_pay = 5;
+var option_show_student_city = true;
 var skills_data = { "default": "images/default.png" };
 var coefs_data = { "default": "1" };
 var skills_resource = 'https://itgenio.div42.ru/';
@@ -39,6 +40,18 @@ var balanse_history_was = false;
 var balanse_history = null;
 
 var lesson_id = '';
+var is_working = false;
+var is_working_tick = 0;
+
+var color_scheme = 'default';
+var color_scheme_index = 0;
+
+var students_data = {};
+var students_list_ids = [];
+var students_skypes = {};
+
+var need_mute = localStorage.getItem('need_mute_student');
+if (need_mute===undefined) need_mute=0;
 
 const MONTH = {
     0: 'январь',
@@ -64,61 +77,67 @@ const DOW = {
     6: "суббота"
 }
 
-main_timer = setInterval(function() {
-    if (url != location.href) {
-        url = location.href;
-        hostname = location.hostname;
-        if (url.indexOf("portal.itgen.io/schedule") >= 0) {
-            waitToLoadShedule();
+function check_state(){
+    //Проверяем нужно ли читать расписание
+    let els;
+
+    els = document.querySelectorAll('.trainer-schedule-lesson-container:not(.loaded) .list-group-item');
+    if (!is_working && els.length) {
+        els = document.querySelectorAll('.trainer-schedule-lesson-container:not(.loaded)');
+        for (let i = 0; i < els.length; i++) {
+            els[i].classList.add("loaded");
         }
-        if (url.indexOf("portal.itgen.io/lesson") >= 0) {
-            waitToLoadLesson();
-        }
-        if (url.indexOf("portal.itgen.io/createSchedule") >= 0) {
-            startLoadSheduleAdmin();
-        }
-        if (url.indexOf("/favoriteTrainers") >= 0) {
-            waitToLoadFavoriteTrainers();
-        }
+        is_working = true;
+        startLoadShedule();
     }
-}, 1000);
-if (url.indexOf("portal.itgen.io/schedule") >= 0) {
-    waitToLoadShedule();
-}
-if (url.indexOf("portal.itgen.io/lesson") >= 0) {
-    waitToLoadLesson();
-}
-if (url.indexOf("/createSchedule") >= 0) {
-    startLoadSheduleAdmin();
-}
-if (url.indexOf("/favoriteTrainers") >= 0) {
-    waitToLoadFavoriteTrainers();
-}
-var second_timer;
-var favorite_timer;
-
-function waitToLoadShedule() {
-    if (!second_timer) second_timer = setInterval(function() {
-        if (document.querySelectorAll('.trainer-schedule-lesson-container .list-group-item').length) {
-            clearInterval(second_timer);
-            second_timer = null;
-            startLoadShedule();
+    //Нужно ли загружать урок
+    els = document.querySelectorAll('div:not(.loaded) > .trainer-lesson-list-item');
+    if (!is_working && els.length) {
+        for (let i = 0; i < els.length; i++) {
+            els[i].parentNode.classList.add("loaded");
         }
-    }, 1000);
-}
-/*var emoji_timer = setInterval(function() {
-    if (option_show_smiles) addEmojiButton()
-}, 100);;*/
-
-function waitToLoadLesson() {
-    if (!second_timer) second_timer = setInterval(function() {
-        if (document.querySelectorAll('.trainer-lesson-list-item').length) {
-            clearInterval(second_timer);
-            second_timer = null;
-            startLoadLesson();
+        is_working = true;
+        startLoadLesson();
+    }
+    //Для админов
+    if (!is_working) {
+        is_working = true;
+        loadSheduleAdmin();
+    }
+    //Проверка платежей
+    if (!is_working) {
+        is_working = true;
+        checkNewPayments();
+    }
+    if (!is_working) {
+        is_working = true;
+        checkPaymentsPanel();
+    }
+    //Нужно ли грузить список любимых учеников
+    els = document.querySelectorAll('.row-childrens:not(.loaded)');
+    if (!is_working && els.length) {
+        for (let i = 0; i < els.length; i++) {
+            els[i].classList.add("loaded");
         }
-    }, 100);
+        is_working = true;
+        startLoadFavoriteTrainers();
+    }
+    //Нужно ли добавить кнопку указания, что у ученика скайп
+    if (!is_working) {
+        checkStudentSkype();
+    }
+    //Нужно ли начать контроллировать громкости учеников
+    if (!is_working) {
+        checkStudentMutes();
+    }
+
+    setImageLoading();
+    setColorScheme();
+
+    setTimeout(check_state, 200);
 }
+setTimeout(check_state, 200);
+
 
 function startLoadShedule() {
     if (socket1) {
@@ -181,6 +200,7 @@ function startLoadShedule() {
                 drawLessons();
                 socket1.close();
                 socket1 = null;
+                is_working = false;
             } else if (request.msg == 'ready') {
                 if (operation == 'shedule') {
                     //Получили список занятий
@@ -194,18 +214,9 @@ function startLoadShedule() {
                     sendRequestBalanse();
                     
                 }
-            } else {}
+            }
         }
     };
-}
-var shedule_admin_timer = null;
-
-function startLoadSheduleAdmin() {
-    if (!shedule_admin_timer) {
-        shedule_admin_timer = setInterval(function() {
-            loadSheduleAdmin();
-        }, 100);;
-    }
 }
 
 function startLoadBalanseHistory() {
@@ -245,7 +256,53 @@ function startLoadBalanseHistory() {
 
                 balanse_history = request.result;
                 socket1.close();
+                is_working = false;
             }
+        }
+    };
+}
+
+function startLoadStudentsInfo() {
+    if (socket1) {
+        socket1.close();
+        socket1 = null;
+    }
+    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + (Math.floor(Math.random() * 800) + 101) + "/" + makeid(8) + "/websocket");
+    socket1.onopen = function(e) {
+        //getWeekNumber();
+        socket1.send('["{\\"msg\\":\\"connect\\",\\"version\\":\\"1\\",\\"support\\":[\\"1\\",\\"pre2\\",\\"pre1\\"]}"]');
+    };
+    socket1.onmessage = function(event) {
+        if (event.data[0] == 'a') {
+            let request = JSON.parse(JSON.parse(event.data.substr(1))[0]);
+            if (request.msg == 'added' && operation == 'students_data') {
+                students_data[request.id] = request.fields;
+                // console.log(request);
+                // socket1.close();
+                // is_working = false;
+            } else if (request.msg == 'ready' && operation == 'students_data') {
+                operation = '';
+                //Отображаем данные про студентов
+                writeStudentsDataLesson();
+            } else if (request.msg == 'connected') {
+                //Подключились
+                session_id = request.session;
+                //Отправляем запрос на обновление данных пользователя
+                operation = 'login';
+                loginResume();
+            } else if (request.msg == 'added') {
+                //Получили данные пользователя
+                if (request.collection == 'users' && operation == 'login') {
+                    //console.log(request);
+                    user_id = request.id;
+                    if (request.fields.payBase) pay_base = request.fields.payBase;
+                    if (request.fields.maxSlots) max_slots = request.fields.maxSlots;
+                    tz = moment().tz(request.fields.tz)._offset / 60;
+                    operation = 'students_data';
+                    //Запрашиваем данные студентов
+                    sendRequestStudents2();
+                } 
+            } 
         }
     };
 }
@@ -253,7 +310,7 @@ function startLoadBalanseHistory() {
 
 chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
     'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
-    'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay'], function(items) {
+    'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay', 'skalp_color_scheme', 'skalp_show_student_city'], function(items) {
     if (items['skalp_show_count'] != null) option_show_count = items['skalp_show_count'];
     if (items['skalp_show_language'] != null) option_show_language = items['skalp_show_language'];
     if (items['skalp_show_subject'] != null) option_show_subject = items['skalp_show_subject'];
@@ -274,6 +331,8 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
             option_currency_profile_mark = option_currency_profile_id.toUpperCase();
         }
     }
+    if (items['skalp_show_student_city'] != null) option_show_student_city = items['skalp_show_student_city'];
+
 });
 
 function loginResume() {
@@ -282,7 +341,7 @@ function loginResume() {
 }
 
 function sendRequestLessons() {
-    socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + session_id + '\\",\\"name\\":\\"schedule.view\\",\\"params\\":[\\"GThywmCjBHf4oeQxN\\"]}"]');
+    socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + session_id + '\\",\\"name\\":\\"schedule.view\\",\\"params\\":[\\"' + lesson_id +  '\\"]}"]');
 }
 
 function sendSheduleRequest() {
@@ -313,6 +372,16 @@ function sendRequestStudents() {
     let query = '["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + getSendId() + '\\",\\"name\\":\\"users.view\\",\\"params\\":[[\\"' + students_id[0] + '\\"';
     for (var i = 1; i < students_id.length; i++) {
         query += ',\\"' + students_id[i] + '\\"';
+    }
+    query += ']]}"]';
+    socket1.send(query);
+}
+
+function sendRequestStudents2() {
+
+    let query = '["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + getSendId() + '\\",\\"name\\":\\"users.view\\",\\"params\\":[[\\"' + students_list_ids[0] + '\\"';
+    for (var i = 1; i < students_list_ids.length; i++) {
+        query += ',\\"' + students_list_ids[i] + '\\"';
     }
     query += ']]}"]';
     socket1.send(query);
@@ -614,6 +683,10 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
                 text += '<span class="student-subject student-subject-' + lesson.c[i].subject + '"><img src="' + skills_resource + skill_image + '" title="' + skills_list[lesson.c[i].subject] + '"></span>';
             }
         }
+        //Skype
+        if (students_skypes[student.id]==1) {
+            text += '<span class="student_skype_in_shedule" title="Звонить на Skype"></span>';
+        }
         //Ученик
         text += '<span class="student-name"><a href="/profile/' + student.id + '" class="title-name">' + student.lastName + ' ' + student.firstName + '</a><a onclick="return false" class="popup_clipboard" title="Скопировать в буфер обмена">&#9997;</a></span>';
 
@@ -740,6 +813,7 @@ function getWeekEndPay() {
 }
 
 
+
 function prepareMonth() {
     //Удаляем старое расписание
     var els = document.querySelectorAll(".grid-calendar-month");
@@ -807,8 +881,11 @@ studentCopyClipboard = function() {
 }
 //ДОПОЛНЕНИЕ ДЛЯ УРОКА
 function startLoadLesson() {
+    students_data = {};
+    students_list_ids = [];
 
-    lesson_id = location.href.split("/")[4] + "_" + location.href.split("/")[5];
+    lesson_id = location.href.split("/")[4];
+    let lesson_id_date = lesson_id + "_" + location.href.split("/")[5];
     var userLink = document.querySelectorAll(".trainer-lesson-list-item .name-block");
     for (var i = userLink.length - 1; i >= 0; i--) {
         el = document.createElement("a");
@@ -823,7 +900,8 @@ function startLoadLesson() {
     var users = document.querySelectorAll(".child-list > div > div");
     for (var i = users.length - 1; i >= 0; i--) {
         let user_id = users[i].querySelector('a.title-name').href.split("/").pop();
-        let work_id = lesson_id + '_' + user_id;
+        students_list_ids.push(user_id);
+        let work_id = lesson_id_date + '_' + user_id;
         let d_storage = localStorage.getItem('st_'+work_id);
         if (d_storage===null) {
             d_storage = {
@@ -902,12 +980,23 @@ function startLoadLesson() {
         btn_stop.className='btn_stop';
         time_buttons.appendChild(btn_stop);
 
+        users[i].dataset.user_id = user_id;
+        users[i].classList.add('student_'+user_id);
         users[i].appendChild(el);
+
+        // let btn_mute = users[i].querySelector('.videochat-volume .btn-videochat.btn-volume');
+        // if (btn_mute) {
+        //     btn_mute.addEventListener('click', muteOtherStudents);
+        // }
     }
 
-    timerStudentTimer();
-    setInterval(timerStudentTimer, 1000);
+    startLoadStudentsInfo();
+
+    is_working = false;
 }
+
+timerStudentTimer();
+setInterval(timerStudentTimer, 1000);
 
 function timerStudentTimer(){
     var timers = document.querySelectorAll(".student_timer");
@@ -1065,6 +1154,8 @@ function loadSheduleAdmin() {
             els[i].className += " worked";
         }
     }
+
+    is_working = false;
 }
 var shedule_one_id = 0;
 var shedule_one_week = 0;
@@ -1202,7 +1293,7 @@ char_position_timer = setInterval(function() {
             
             chatWindowFixedButton.addEventListener('click', function(){
                 let chatWindow = document.querySelector(".chat-window");
-                if (chatWindow.classList.contains('chat-window-fixed')) {
+                if (chatWindow.parentNode.classList.contains('chat-window-fixed')) {
                     chatWindow.style.width = chat_properties.width;
                     chatWindow.style.top = chat_properties.top;
                     chatWindow.style.left = chat_properties.left;
@@ -1219,13 +1310,13 @@ char_position_timer = setInterval(function() {
                     chat_properties.bottom = chatWindow.style.bottom;
                     this.innerHTML = '<';
                 }
-                chatWindow.classList.toggle("chat-window-fixed");
+                chatWindow.parentNode.classList.toggle("chat-window-fixed");
                 this.classList.toggle("btn-chat-fixed-active");
             });
         }
     }
     
-    let chatWindowFixed = document.querySelector(".chat-window-fixed");
+    let chatWindowFixed = document.querySelector(".chat-window-fixed .chat-window");
     if (chatWindowFixed) {
         chatWindowFixed.style.left = (parseInt(document.body.clientWidth)-parseInt(chatWindow.style.width)) + 'px';
         let boxRight = document.querySelector(".box.box-right");
@@ -1286,11 +1377,6 @@ function setOptionCurrencyProfileRate(){
 }
 
 
-all_timer = setInterval(function() {
-    checkNewPayments();
-    checkPaymentsPanel();
-}, 100);
-
 Date.prototype.daysInMonth = function() {
     return 32 - new Date(this.getFullYear(), this.getMonth(), 32).getDate();
 };
@@ -1314,6 +1400,7 @@ function checkNewPayments(){
         }
     }
     
+    is_working = false;
 }
 
 
@@ -1354,26 +1441,6 @@ getJSON('https://itgenio.div42.ru/coefs.json', '',  function(err, data) {
 
 
 
-
-function waitToLoadFavoriteTrainers() {
-    if (!favorite_timer) favorite_timer = setInterval(function() {
-        if (document.querySelectorAll('.row-childrens').length) {
-            clearInterval(favorite_timer);
-            favorite_timer = null;
-            startLoadFavoriteTrainers();
-        }
-    }, 100);
-}
-
-function waitToCollapseFavoriteTrainers() {
-    if (!favorite_timer) favorite_timer = setInterval(function() {
-        if (document.querySelectorAll('.row-childrens').length==0) {
-            clearInterval(favorite_timer);
-            favorite_timer = null;
-            waitToLoadFavoriteTrainers()
-        }
-    }, 100);
-}
 
 //Получаем и сортируем учеников
 function startLoadFavoriteTrainers(){
@@ -1456,7 +1523,7 @@ function startLoadFavoriteTrainers(){
             text += '</ol>';
             td.innerHTML = text;
 
-            waitToCollapseFavoriteTrainers();
+            is_working = false;
         }
     });
 }
@@ -1596,6 +1663,306 @@ function checkPaymentsPanel(){
 
             html += '</div>';
             el_parent.innerHTML = html;
+        }
+    }
+
+    is_working = false;
+}
+
+function setImageLoading(){
+    if (is_working) {
+        is_working_tick++;
+        if (is_working_tick>50) {
+            is_working = false;
+        }
+    }
+    els = document.querySelectorAll('.top-bar-container .right .image_loading');
+    if (els.length && !is_working) {
+        for (var el_num = els.length - 1; el_num >= 0; el_num--) {
+            els[el_num].remove();
+        }       
+    }
+    if (!els.length && is_working) {
+        el = document.createElement("div");
+        el.className = 'image_loading lds-dual-ring';
+        el_parent = document.querySelector('.top-bar-container .right');
+        if (el_parent) {
+            el_parent.prepend(el);       
+        }
+    }
+}
+
+function setColorScheme() {
+    if (typeof chrome.app.isInstalled!=='undefined') {
+        chrome.storage.sync.get(['skalp_color_scheme'], function(items) {
+            let t = items['skalp_color_scheme'];
+            if (!t || t==color_scheme) return;
+            document.getElementsByTagName('body')[0].classList.remove("color_scheme_" + color_scheme);
+            document.getElementsByTagName('body')[0].classList.add("color_scheme_" + t);
+            color_scheme = t;
+
+            color_scheme_index++;
+            let e = document.querySelector("#color_scheme_extension");
+            let href = 'https://itgenio.div42.ru/css/' + t + '.css?ver='+color_scheme_index;
+            if (!e) {
+                e = document.createElement("link");
+                e.rel = 'stylesheet';
+                e.type = 'text/css';
+                e.id = 'color_scheme_extension';
+                document.querySelector('head').appendChild(e);    
+            }
+            e.href = href;
+        });
+    }
+}
+
+function writeStudentsDataLesson() {
+    els = document.querySelectorAll('.lesson-body .trainer-lesson-list-item');
+    for (let i = 0; i < els.length; i++) {
+        let id = els[i].dataset.user_id;
+        if (students_data[id]!=undefined) {
+            let el_to_add = els[i].querySelector('.about-child');
+            let el = null;
+
+            el = els[i].querySelector('.about-child > .student_skype_info');
+            if (!el && el_to_add) {
+                el = document.createElement("span");
+                el.className = 'student_skype_info';
+                el.dataset.user_id = id;
+                el_to_add.appendChild(el); 
+            }
+
+            if (option_show_student_city) {
+                el = els[i].querySelector('.about-child > .student_city');
+                if (!el && el_to_add) {
+                    el = document.createElement("span");
+                    el.className = 'student_city';
+                    let s = '';
+                    if (students_data[id].country) {
+                        if (countries[students_data[id].country]) {
+                            s += countries[students_data[id].country];
+                        } else {
+                            s += students_data[id].country;
+                        }
+
+                    }
+                    if (students_data[id].city) s += ', ' + students_data[id].city;
+                    el.innerHTML = s;
+                    el_to_add.appendChild(el); 
+                }
+            }
+
+            
+        }
+    }
+    updateStudentsSkypesInfo();
+}
+
+function loadStudentSkypes(){
+    getJSON('https://itgenio.div42.ru/get_student_skypes.php', '',  function(err, data) {
+        if (err != null) {
+            console.error(err);
+        } else {
+            students_skypes = data;
+            if (!students_skypes) students_skypes = [];
+        }
+    });
+
+}
+loadStudentSkypes();
+
+function checkStudentSkype() {
+    let el_user = document.querySelector('.trainer-lesson-list-item.list-group-item.selected');
+    if (!el_user) return;
+    let user_id = el_user.dataset.user_id;
+    let el = document.querySelector('.trainer-lesson-fields.selected-skype');
+    if (el.dataset.user_id == user_id) return;
+    el.dataset.user_id = user_id;
+    let el_to_add = el;
+    let el_to_del = el_to_add.querySelector('.student_skype');
+    if (el_to_del) {
+        el_to_del.remove();
+    }
+    if (el_to_add) {
+        e = document.createElement("span");
+        e.dataset.student_id = user_id;
+        let value = 0;
+        if (students_skypes[user_id]!=undefined) {
+            value = students_skypes[user_id];
+        }
+        e.dataset.value = value;
+        e.className = 'student_skype student_skype_'+value;
+        e.innerHTML = '';
+        e.addEventListener("click", setStudentSkype);
+        el_to_add.appendChild(e); 
+    }
+}
+
+function setStudentSkype(){
+    let value = this.dataset.value;
+    let id = this.dataset.student_id;
+    this.classList.remove('student_skype_'+value);
+    if (value==0) {
+        value = 1;
+    } else {
+        value = 0;
+    }
+    this.dataset.value = value;
+    this.classList.add('student_skype_'+value);
+    students_skypes[id] = value;
+
+    let params = 'id=' + id + '&value=' + value;
+    getJSON('https://itgenio.div42.ru/set_student_skypes.php', params, function(err, data) {});
+
+    updateStudentsSkypesInfo();
+}
+
+function updateStudentsSkypesInfo(){
+    els = document.querySelectorAll('.lesson-body .trainer-lesson-list-item .about-child > .student_skype_info');
+    for (let i = 0; i < els.length; i++) {
+        let id = els[i].dataset.user_id;
+        if (id && students_skypes[id]==1) {
+            els[i].classList.add("active");
+        } else {
+            els[i].classList.remove("active");
+        }
+    }
+}
+
+//Добавляем возможность мютить
+function checkStudentMutes() {
+    let button_switch_mute = document.querySelector('.trainer-lesson-actions .label-toggle-mute');
+    if (!button_switch_mute) {
+
+        let el_to_add = document.querySelector('.trainer-lesson-actions > div:last-child');
+        if (el_to_add) {
+            let el;
+
+            el = document.createElement("button");
+            el.className = "button-mute-all";
+            el.innerHTML = 'Mute all';
+            el.addEventListener("click", muteAll);
+            el_to_add.prepend(el);    
+
+            el = document.createElement("label");
+            el.className = 'label-toggle-mute';
+            el.title = 'Автоматически глушить всех учеников кроме активного';
+            let s = '';
+            s+='<input type="checkbox" ';
+            if (need_mute==1) s+= ' checked';
+            s+='> <span>AutoMute</span>';
+            el.innerHTML = s;
+            el.addEventListener("change", switchMute);
+            el_to_add.prepend(el);    
+        }
+
+    }
+
+    let els = document.querySelectorAll('.trainer-lesson-list-item.list-group-item');
+    for (let i = 0; i < els.length; i++) {
+        let user_id = els[i].dataset.user_id;
+        if (!user_id) continue;
+        let el = els[i].querySelector('.btn-videochat.btn-mute:not(.loaded)');
+        if (el) {
+            el.classList.add("loaded");
+            el.dataset.user_id = user_id;
+            el.addEventListener("click", muteOtherStudents);
+        }
+
+        let el_button = els[i].querySelector('.btn-videochat.btn-volume:not(.loaded)');
+        if (el_button) {
+            el_button.classList.add("loaded");
+            el_button.dataset.user_id = user_id;
+        }
+    }
+
+    let active_block = document.querySelector('.trainer-lesson-list-item.list-group-item.selected');
+    if (active_block) {
+        let active_user_id = active_block.dataset.user_id;
+        let el_container = document.querySelector('.videochat-window');
+        if (el_container) {
+            let el_button = el_container.querySelector('.btn-videochat.btn-mute:not(.loaded)');
+            if (el_button) {
+                el_button.classList.add("loaded");
+                el_button.dataset.user_id = active_user_id;
+                el_button.addEventListener("click", muteOtherStudents);
+            } else {
+                el_button = el_container.querySelector('.btn-videochat.btn-mute');
+                if (el_button) {
+                    el_button.dataset.user_id = active_user_id;
+                }
+            }
+            el_button = el_container.querySelector('.btn-videochat.btn-volume:not(.loaded)');
+            if (el_button) {
+                el_button.classList.add("loaded");
+                el_button.dataset.user_id = active_user_id;
+            }
+        }
+    }
+}
+//Глушить других учеников
+function muteOtherStudents(){
+    if (!need_mute) return;
+
+    let active_user_id = this.dataset.user_id;
+    if (!active_user_id) return;
+
+    let active_block = document.querySelector('.trainer-lesson-list-item.list-group-item[data-user_id="' + active_user_id + '"]');
+    if (!active_block) return;
+    
+    let el_active_input = active_block.querySelector('.videochat-volume input[type=hidden]');
+    if (!el_active_input) return;
+    let active_volume = el_active_input.value;
+
+    let el_active_button = active_block.querySelector('.btn-videochat.btn-mute');
+    if (!el_active_button) return;
+    let el_active_is_active = !el_active_button.classList.contains('btn-videochat-dark');
+
+    let event = new Event("click", {bubbles : true, cancelable : true})
+
+    let els = document.querySelectorAll('.child-list .videochat-volume');
+    for (let i = 0; i < els.length; i++) {
+        let el_button = els[i].querySelector('.btn-videochat.btn-volume');
+        let el_input = els[i].querySelector('input[type=hidden]');
+        let el_user_id = el_button.dataset.user_id;
+        if (!el_active_is_active) {
+            if (el_user_id!=active_user_id && el_input.value!=0) {
+                el_button.dispatchEvent(event);
+            }
+            if (el_user_id==active_user_id && el_input.value==0) {
+                el_button.dispatchEvent(event);
+            }    
+        } else {
+            if (el_user_id==active_user_id && el_input.value!=0) {
+                el_button.dispatchEvent(event);
+            } 
+        }
+        
+    }
+}
+
+function switchMute(){
+    let elem = this.querySelector('input[type=checkbox]');
+    if (elem) {
+        need_mute = (need_mute==1)?0:1;
+        if (need_mute==1)
+            elem.checked = true;
+        else 
+            elem.checked = false;
+        localStorage.setItem('need_mute_student', need_mute);
+    }
+}
+
+function muteAll() {
+    let event = new Event("click", {bubbles : true, cancelable : true})
+
+    let els = document.querySelectorAll('.child-list .videochat-volume');
+    for (let i = 0; i < els.length; i++) {
+        let el_button = els[i].querySelector('.btn-videochat.btn-volume');
+        let el_input = els[i].querySelector('input[type=hidden]');
+        let el_user_id = el_button.dataset.user_id;
+        if (el_input.value!=0) {
+            el_button.dispatchEvent(event);
         }
     }
 }

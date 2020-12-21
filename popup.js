@@ -48,15 +48,20 @@ function saveOptions() {
     var date_pay = document.getElementById("date_pay");
     items_to_save["skalp_date_pay"] = date_pay.value;
 
+    var show_student_city = document.getElementById("show_student_city");
+    items_to_save["skalp_show_student_city"] = show_student_city.checked;
+    console.log(items_to_save);
+
     chrome.storage.sync.set(items_to_save, function() {
     });
-    
+
     // Update status to let user know options were saved.
     var status = document.getElementById("status");
     status.innerHTML = "Сохранено. Перезагрузите страницу.";
     setTimeout(function() {
         status.innerHTML = "";
     }, 1500);
+
 }
 // Restores select box state to saved value from localStorage.
 function restoreOptions() {
@@ -64,33 +69,34 @@ function restoreOptions() {
 
     chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
         'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
-        'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay'], function(items) {
-    	show_count = true;
+        'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay',
+        'skalp_color_scheme', 'skalp_show_student_city'], function(items) {
+    	let show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
 		var countCheckbox = document.getElementById("show_count");
         countCheckbox.checked = show_count;
 
-    	show_language = false;
+    	let show_language = false;
 		if (items['skalp_show_language']!= null) show_language = items['skalp_show_language'];
 		var languageCheckbox = document.getElementById("show_language");
         languageCheckbox.checked = show_language;
 
-        show_subject = true;
+        let show_subject = true;
 		if (items['skalp_show_subject']!= null) show_subject = items['skalp_show_subject'];
 		var subjectCheckbox = document.getElementById("show_subject");
         subjectCheckbox.checked = show_subject;
 
-        show_skill = true;
+        let show_skill = true;
 		if (items['skalp_show_skill']!= null) show_skill = items['skalp_show_skill'];
 		var skillCheckbox = document.getElementById("show_skill");
         skillCheckbox.checked = show_skill;
 
-        show_cost = false;
+        let show_cost = false;
 		if (items['skalp_show_cost']!= null) show_cost = items['skalp_show_cost'];
 		var costCheckbox = document.getElementById("show_cost");
         costCheckbox.checked = show_cost;
 
-        show_month = false;
+        let show_month = false;
 		if (items['skalp_show_month']!= null) show_month = items['skalp_show_month'];
 		var monthCheckbox = document.getElementById("show_month");
         monthCheckbox.checked = show_month;
@@ -100,19 +106,43 @@ function restoreOptions() {
         // var smilesCheckbox = document.getElementById("show_smiles");
         // smilesCheckbox.checked = show_smiles;
 
-        currency_id = 'usd';
+        let currency_id = 'usd';
         if (items['skalp_currency_id']!= null) currency_id = items['skalp_currency_id'];
         var currencyCheckbox = document.getElementById("currency_id");
         currencyCheckbox.value = currency_id;
 
-        currency_profile_id = 'usd';
+        let currency_profile_id = 'usd';
         if (items['skalp_currency_profile_id']!= null) currency_profile_id = items['skalp_currency_profile_id'];
         var currencyProfileCheckbox = document.getElementById("currency_profile_id");
         currencyProfileCheckbox.value = currency_profile_id;
 
-        date_pay = '5';
+        let date_pay = '5';
         if (items['skalp_date_pay']!= null) date_pay = items['skalp_date_pay'];
         var datePayInput = document.getElementById("date_pay");
         datePayInput.value = date_pay;
+
+        let show_student_city = true;
+        if (items['skalp_show_student_city']!= null) show_student_city = items['skalp_show_student_city'];
+        var studentCityCheckbox = document.getElementById("show_student_city");
+        studentCityCheckbox.checked = show_student_city;
+        
+
+        let color_scheme = 'default';
+        if (items['skalp_color_scheme']!= null) color_scheme = items['skalp_color_scheme'];
+        var colorSchemeInput = document.getElementById("color_scheme_"+color_scheme);
+        colorSchemeInput.checked = true;
+        var colorSchemeRadios = document.querySelectorAll('input[type=radio][name="color_scheme"]');
+        Array.prototype.forEach.call(colorSchemeRadios, function(radio) {
+           radio.addEventListener('change', colorSchemeChange);
+        });
+
+    });
+}
+
+function colorSchemeChange() {
+    var items_to_save = {};
+    items_to_save["skalp_color_scheme"] = this.value;
+
+    chrome.storage.sync.set(items_to_save, function() {
     });
 }

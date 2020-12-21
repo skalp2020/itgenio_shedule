@@ -199,7 +199,7 @@
     text-decoration: none;
     opacity: 1;
 }
-.chat-window-fixed{
+.chat-window-fixed .chat-window{
     position: fixed;
     height: 100%!important;
     top: 0!important;
@@ -363,4 +363,112 @@
     font-weight: bold;
     margin: 20px 8px;
     font-size: 120%;
+}
+
+
+.lds-dual-ring {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 4px;
+  border-radius: 50%;
+  border: 3px solid #888;
+  border-color: #888 transparent #888 transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.student_city{
+    font-size: 80%;
+    color: #bbb;
+    margin: 0 5px;
+}
+.student_skype{
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    cursor: pointer;
+    display: inline-block;
+    background-image: url("https://itgenio.div42.ru/images/skype.svg");
+    background-size: contain;
+    filter: invert(46%) sepia(1) hue-rotate(161deg) contrast(3);
+    -webkit-filter: invert(46%) sepia(1) hue-rotate(161deg) contrast(3);
+    opacity: 1;
+}
+.student_skype_0{
+    opacity: 0.3;
+}
+.student_skype_info.active{
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    cursor: pointer;
+    display: inline-block;
+    background-image: url("https://itgenio.div42.ru/images/skype.svg");
+    background-size: contain;
+    filter: invert(46%) sepia(1) hue-rotate(161deg) contrast(3);
+    -webkit-filter: invert(46%) sepia(1) hue-rotate(161deg) contrast(3);
+    opacity: 1;
+    margin: 0 0 0 5px;
+}
+.student_skype_in_shedule{
+    width: 15px;
+    height: 15px;
+    vertical-align: middle;
+    display: inline-block;
+    background-image: url("https://itgenio.div42.ru/images/skype.svg");
+    background-size: contain;
+    filter: invert(46%) sepia(1) hue-rotate(161deg) contrast(3);
+    -webkit-filter: invert(46%) sepia(1) hue-rotate(161deg) contrast(3);
+    opacity: 1;
+}
+
+.button-mute-all{
+    font-size: 11px;
+    padding: 4px 8px;
+    line-height: 1;
+    min-height: 0;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    margin-right: 7px;
+    color: #999;
+    outline: none!important;
+}
+.button-mute-all:hover{
+    background: #ccc;
+    color: #666;
+}
+.trainer-lesson-actions > div:last-child{
+    display: flex;
+    align-items: center;
+}
+.label-toggle-mute {
+    font-size: 80%;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    margin: 0 6px;
+}
+.label-toggle-mute input[type=checkbox]{
+    margin: 0 4px 0 0;
+}
+.label-toggle-mute span{
+    
+}
+.videochat-settings-btn{
+    line-height: 1;
+    margin-bottom: -2px;
 }
