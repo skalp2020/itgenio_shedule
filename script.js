@@ -136,7 +136,7 @@ function check_state(){
 
     setTimeout(check_state, 200);
 }
-setTimeout(check_state, 200);
+check_state();
 
 
 function startLoadShedule() {
@@ -504,12 +504,15 @@ function addLessonToHtml(lesson, id, className = '', cost = 0) {
                 minute: 'numeric',
             };
             let lesson_string = lesson_time.toLocaleString("ru", options);
-            el.className = "trainer-schedule-lesson-container gena-non-decorated-link";
+            el.className = "trainer-schedule-lesson-container gena-non-decorated-link loaded";
+            el.classList.add('loaded');
             el.innerHTML = '<div class="list-group-item"><div><span>' + lesson_string + ', <span class="label label-primary">Будет</span></span></div>';
             lesson_container.appendChild(el);
         }
     }
-    if (el) {
+    if (el && !el.classList.contains("loadcomplete")) {
+        el.classList.add('loaded');
+        el.classList.add('loadcomplete');
         //Заменяем статус урока
         var label = el.querySelectorAll(".label");
         for (var i = label.length - 1; i >= 0; i--) {
