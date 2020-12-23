@@ -472,3 +472,13 @@
     line-height: 1;
     margin-bottom: -2px;
 }
+
+.admin_lesson{
+    font-size: 90%;
+    padding: 0 12px;
+    color: #ddd;
+    cursor: pointer;
+}
+.admin_lesson:hover{
+    color: #777;
+}

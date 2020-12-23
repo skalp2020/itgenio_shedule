@@ -101,7 +101,6 @@ function check_state(){
     }
     //Для админов
     if (!is_working) {
-        is_working = true;
         loadSheduleAdmin();
     }
     //Проверка платежей
@@ -411,6 +410,21 @@ function addLessonToList(lessons, id) {
             }
             if (lessons.slots[i].id==user_id && lessons.slots[i].st.e >= week_start && lessons.slots[i].st.e <= week_end_pay) {
                 lessons_list_pay.push({
+                    lesson: lessons.slots[i],
+                    cost: calcCost(lessons.slots[i]),
+                    id: id
+                });
+            }
+        }
+    }
+}
+
+function addLessonToListAdmin(lessons, id) {
+
+    for (let i = 0; i <= lessons.slots.length; i++) {
+        if (lessons.slots[i]) {
+            if (lessons.slots[i].st.s >= week_start && lessons.slots[i].st.s <= week_end) {
+                lessons_list.push({
                     lesson: lessons.slots[i],
                     cost: calcCost(lessons.slots[i]),
                     id: id
@@ -1140,62 +1154,58 @@ function emojiShowWindow() {
 }
 //ДЛЯ АДМИНОВ
 function loadSheduleAdmin() {
-    var els = document.querySelectorAll(".groups-gr-item:not(.worked)");
+    var els = document.querySelectorAll(".group-item > a.link:not(.worked)");
     if (els.length > 0) {
         elementsToSendRequest = [];
         for (var i = 0; i < els.length; i++) {
-            let btn_show = document.createElement("a");
-            btn_show.className = 'btn_show_shedule btn_' + els[i].dataset.scheduleId + "_" +  Math.round(els[i].dataset.week/100000) + "_" +  Math.round(els[i].dataset.start/100000);
-            btn_show.addEventListener('click', loadSheduleOne);
-            btn_show.href = "javascript:";
-            btn_show.innerHTML = '&#9660;';
-            btn_show.title = "Показать список учеников";
-            btn_show.dataset.id = els[i].dataset.scheduleId;
-            btn_show.dataset.week = els[i].dataset.week;
-            btn_show.dataset.start = els[i].dataset.start;
-            els[i].parentElement.insertBefore(btn_show, els[i].nextSibling);
+            let btn_show = document.createElement("div");
+            btn_show.className = 'admin_lesson';
+            btn_show.innerHTML = 'Список учеников...';
+            let elems = els[i].href.split('/');
+            btn_show.dataset.lesson = elems[elems.length-2];
+            btn_show.dataset.date = elems[elems.length-1];
+            btn_show.addEventListener('click', blockStartLoadShedule);
+            let lesson_time = els[i].parentElement.parentElement.querySelector(".group-time");
+            if (lesson_time) {
+                btn_show.dataset.time = lesson_time.innerHTML.replace(':','');
+            } else {
+                btn_show.dataset.time = '0000';
+            }
+            els[i].parentElement.after(btn_show);
             els[i].className += " worked";
+            
         }
     }
 
-    is_working = false;
+    loadSheduleOne();
 }
-var shedule_one_id = 0;
-var shedule_one_week = 0;
-var shedule_one_start = 0;
-var shedule_one_class = "";
+
+function blockStartLoadShedule(){
+    this.classList.add('needload');
+    this.innerHTML = 'Загрузка...';
+    this.removeEventListener('click', blockStartLoadShedule);
+}
+
+var shedule_one_id = '';
+var shedule_one_week = '';
 
 function loadSheduleOne() {
-    shedule_one_id = this.dataset.id;
-    shedule_one_week = this.dataset.week;
-    shedule_one_start = this.dataset.start;
-    shedule_one_class = shedule_one_id + "_" + Math.round(shedule_one_week/100000) + "_" + Math.round(shedule_one_start/100000);
-    week_start = this.dataset.start;
-    week_end = week_start;
-    var el = document.querySelector(".block_" + shedule_one_class);
-    var el_after = document.querySelector(".btn_" + shedule_one_class);
-    if (el_after) {
-        if (!el) {
-            el = document.createElement("div");
-            el.className = "block_"+shedule_one_class;
-            el.innerHTML = "грузим...";
-            el_after.parentElement.insertBefore(el, el_after.nextSibling);
-            startRequestsSheduleAdmin();
+    var els = document.querySelectorAll(".admin_lesson.needload");
+    if (!els.length) return;
 
-            this.innerHTML = '&#9650;';
-            this.dataset.collapsed = '0';
-        } else {
-            if (this.dataset.collapsed=='1') {
-                el.style.display = 'block';
-                this.innerHTML = '&#9650;'
-                this.dataset.collapsed = '0';
-            } else {
-                el.style.display = 'none';
-                this.innerHTML = '&#9660;'
-                this.dataset.collapsed = '1';
-            }
-        }
-    }
+    var el_main = document.querySelector(".admin_lesson.needload");
+    console.log(el_main);
+    if (!el_main) return;
+
+    el_main.classList.remove('needload');
+
+    shedule_one_id = el_main.dataset.lesson;
+    shedule_one_week = el_main.dataset.date;
+    shedule_one_class = shedule_one_id + '_' + shedule_one_week + '_' + el_main.dataset.time;
+    el_main.classList.add('block_'+shedule_one_class);
+
+    is_working = true;
+    startRequestsSheduleAdmin();
 }
 
 function sendSheduleAdminRequest() {
@@ -1237,7 +1247,15 @@ function startRequestsSheduleAdmin() {
                 } else if (request.collection == 'schedule' && operation == 'shedule_admin') {
                     //Получили содержимое урока
                     //Добавляем урок в список
-                    addLessonToList(request.fields, request.id);
+                    week_start = shedule_one_week * 86400000 - 1000;
+                    week_end = week_start + 86402000;
+                    addLessonToListAdmin(request.fields, request.id);
+                    console.log('shedule_one_week', );
+                    console.log('week_start', week_start);
+                    console.log('week_end', week_end);
+                    console.log(request.fields);
+                    console.log(request.id);
+                    console.log(lessons_list);
                     operation = 'students_admin';
                     sendRequestStudents();
                 }
@@ -1276,6 +1294,7 @@ function drawLessonsAdmin() {
         }
     }
     lessons_list = [];
+    is_working = false;
 }
 
 
@@ -1673,12 +1692,12 @@ function checkPaymentsPanel(){
 }
 
 function setImageLoading(){
-    if (is_working) {
-        is_working_tick++;
-        if (is_working_tick>50) {
-            is_working = false;
-        }
-    }
+    // if (is_working) {
+    //     is_working_tick++;
+    //     if (is_working_tick>50) {
+    //         is_working = false;
+    //     }
+    // }
     els = document.querySelectorAll('.top-bar-container .right .image_loading');
     if (els.length && !is_working) {
         for (var el_num = els.length - 1; el_num >= 0; el_num--) {
