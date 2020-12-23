@@ -1194,7 +1194,6 @@ function loadSheduleOne() {
     if (!els.length) return;
 
     var el_main = document.querySelector(".admin_lesson.needload");
-    console.log(el_main);
     if (!el_main) return;
 
     el_main.classList.remove('needload');
@@ -1250,12 +1249,6 @@ function startRequestsSheduleAdmin() {
                     week_start = shedule_one_week * 86400000 - 1000;
                     week_end = week_start + 86402000;
                     addLessonToListAdmin(request.fields, request.id);
-                    console.log('shedule_one_week', );
-                    console.log('week_start', week_start);
-                    console.log('week_end', week_end);
-                    console.log(request.fields);
-                    console.log(request.id);
-                    console.log(lessons_list);
                     operation = 'students_admin';
                     sendRequestStudents();
                 }
