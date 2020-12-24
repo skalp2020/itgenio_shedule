@@ -1685,12 +1685,12 @@ function checkPaymentsPanel(){
 }
 
 function setImageLoading(){
-    // if (is_working) {
-    //     is_working_tick++;
-    //     if (is_working_tick>50) {
-    //         is_working = false;
-    //     }
-    // }
+    if (is_working) {
+        is_working_tick++;
+        if (is_working_tick>100) {
+            is_working = false;
+        }
+    }
     els = document.querySelectorAll('.top-bar-container .right .image_loading');
     if (els.length && !is_working) {
         for (var el_num = els.length - 1; el_num >= 0; el_num--) {
