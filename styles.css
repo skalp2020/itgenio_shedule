@@ -482,3 +482,7 @@
 .admin_lesson:hover{
     color: #777;
 }
+.student_time{
+    font-size: 80%;
+    color: #bbb;
+}

@@ -50,7 +50,8 @@ function saveOptions() {
 
     var show_student_city = document.getElementById("show_student_city");
     items_to_save["skalp_show_student_city"] = show_student_city.checked;
-    console.log(items_to_save);
+    var show_student_time = document.getElementById("show_student_time");
+    items_to_save["skalp_show_student_time"] = show_student_time.checked;
 
     chrome.storage.sync.set(items_to_save, function() {
     });
@@ -70,7 +71,7 @@ function restoreOptions() {
     chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
         'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
         'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay',
-        'skalp_color_scheme', 'skalp_show_student_city'], function(items) {
+        'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time'], function(items) {
     	let show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
 		var countCheckbox = document.getElementById("show_count");
@@ -126,6 +127,10 @@ function restoreOptions() {
         var studentCityCheckbox = document.getElementById("show_student_city");
         studentCityCheckbox.checked = show_student_city;
         
+        let show_student_time = true;
+        if (items['skalp_show_student_time']!= null) show_student_time = items['skalp_show_student_time'];
+        var studentTimeCheckbox = document.getElementById("show_student_time");
+        studentTimeCheckbox.checked = show_student_time;
 
         let color_scheme = 'default';
         if (items['skalp_color_scheme']!= null) color_scheme = items['skalp_color_scheme'];

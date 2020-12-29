@@ -33,6 +33,7 @@ var option_currency_profile_mark = '$';
 var option_currency_profile_rate = 1;
 var option_date_pay = 5;
 var option_show_student_city = true;
+var option_show_student_time = true;
 var skills_data = { "default": "images/default.png" };
 var coefs_data = { "default": "1" };
 var skills_resource = 'https://itgenio.div42.ru/';
@@ -132,6 +133,7 @@ function check_state(){
 
     setImageLoading();
     setColorScheme();
+    setTimeStudents();
 
     setTimeout(check_state, 200);
 }
@@ -309,7 +311,8 @@ function startLoadStudentsInfo() {
 
 chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
     'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
-    'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay', 'skalp_color_scheme', 'skalp_show_student_city'], function(items) {
+    'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay', 'skalp_color_scheme', 
+    'skalp_show_student_city', 'skalp_show_student_time'], function(items) {
     if (items['skalp_show_count'] != null) option_show_count = items['skalp_show_count'];
     if (items['skalp_show_language'] != null) option_show_language = items['skalp_show_language'];
     if (items['skalp_show_subject'] != null) option_show_subject = items['skalp_show_subject'];
@@ -331,6 +334,7 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
         }
     }
     if (items['skalp_show_student_city'] != null) option_show_student_city = items['skalp_show_student_city'];
+    if (items['skalp_show_student_time'] != null) option_show_student_time = items['skalp_show_student_time'];
 
 });
 
@@ -1767,6 +1771,16 @@ function writeStudentsDataLesson() {
                 }
             }
 
+            if (option_show_student_time) {
+                el = els[i].querySelector('.about-child > .student_time');
+                if (!el && el_to_add) {
+                    el = document.createElement("span");
+                    el.className = 'student_time';
+                    el.dataset.tz = students_data[id].tz;
+                    el_to_add.appendChild(el); 
+                }
+            }
+
             
         }
     }
@@ -1978,6 +1992,22 @@ function muteAll() {
         let el_user_id = el_button.dataset.user_id;
         if (el_input.value!=0) {
             el_button.dispatchEvent(event);
+        }
+    }
+}
+
+function setTimeStudents() {
+    if (!option_show_student_time) return;
+    let d = new Date();
+    let now = moment(d).format("HH:mm");
+    let els = document.querySelectorAll('.about-child > .student_time');
+    for (let i = 0; i < els.length; i++) {
+        if (els[i].dataset.lasttime != now) {
+            let tz = els[i].dataset.tz;
+            if (els[i].dataset.tz) {
+                els[i].innerHTML = moment(d).tz(tz).format("HH:mm");
+                els[i].dataset.lasttime = now;
+            }
         }
     }
 }
