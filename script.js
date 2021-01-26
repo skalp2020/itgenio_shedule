@@ -7,6 +7,8 @@ var user_id = localStorage.getItem('Meteor.userId');
 var user_balanse = 0;
 var socket1;
 var lessons_list = [];
+var lessons_list_temp = [];
+var lessons_list_loading_id = 0;
 var lessons_list_pay = [];
 var skills_list = {};
 var students_list = {};
@@ -39,6 +41,7 @@ var coefs_data = { "default": "1" };
 var skills_resource = 'https://itgenio.div42.ru/';
 var balanse_history_was = false;
 var balanse_history = null;
+var counter_global = Math.floor(Math.random()*800)+101;
 
 var lesson_id = '';
 var is_working = false;
@@ -140,12 +143,16 @@ function check_state(){
 check_state();
 
 
+function getCounter(){
+    return ++counter_global;
+}
+
 function startLoadShedule() {
     if (socket1) {
         socket1.close();
         socket1 = null;
     }
-    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + (Math.floor(Math.random() * 800) + 101) + "/" + makeid(8) + "/websocket");
+    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + getCounter() + "/" + makeid(8) + "/websocket");
     socket1.onopen = function(e) {
         //getWeekNumber();
         socket1.send('["{\\"msg\\":\\"connect\\",\\"version\\":\\"1\\",\\"support\\":[\\"1\\",\\"pre2\\",\\"pre1\\"]}"]');
@@ -162,7 +169,6 @@ function startLoadShedule() {
             } else if (request.msg == 'added') {
                 //Получили данные пользователя
                 if (request.collection == 'users' && operation == 'login') {
-                    //console.log(request);
                     user_id = request.id;
                     if (request.fields.payBase) pay_base = request.fields.payBase;
                     if (request.fields.maxSlots) max_slots = request.fields.maxSlots;
@@ -172,17 +178,25 @@ function startLoadShedule() {
                 } else if (request.collection == 'users' && operation == 'students') {
                     //Получили данные ученика
                     addStudentToList(request.fields, request.id);
-                } else if (request.collection == 'schedule' && operation == 'shedule') {
+                // } else if (request.collection == 'schedule' && operation == 'shedule') {
+                //     //Получили содержимое урока
+                //     //Добавляем урок в список
+                //     addLessonToList(request.fields, request.id);
+                } else if (request.collection == 'schedule' && operation == 'lessons_all') {
                     //Получили содержимое урока
                     //Добавляем урок в список
-                    addLessonToList(request.fields, request.id);
+                    // if (request.id == lessons_list_loading_id) {
+                        addLessonToList(request.fields, request.id);
+                    // }
                 }
+                
             } else if (request.msg == 'result' && request.id == 5) {
                 //Получили предметы
                 addSkillsToList(request.result);
                 //Запрашиваем расписание
                 operation = 'shedule';
                 lessons_list = [];
+                lessons_list_temp = [];
                 lessons_list_pay = [];
                 week_start = getStartTime();
                 week_end_pay = getWeekEndPay();
@@ -202,18 +216,29 @@ function startLoadShedule() {
                 socket1.close();
                 socket1 = null;
                 is_working = false;
+            } if (request.msg == 'result' && request.id == 28 && operation == 'shedule') {
+                //Получили содержимое урока
+                //Добавляем урок в список
+                addLessonsToList(request.result);
+                //Запрашиваем список данных уроков
+                operation = 'lessons_all';
+                sendRequestLessonsAll();
+                //Получили список занятий
+                //Запрашиваем список учеников
+                // operation = 'students';
+                // sendRequestStudents();
             } else if (request.msg == 'ready') {
                 if (operation == 'shedule') {
-                    //Получили список занятий
-                    //Запрашиваем список учеников
-                    operation = 'students';
-                    sendRequestStudents();
+                    
                 } else if (operation == 'students') {
                     //Получили список учеников
                     //Запрашиваем баланс
                     operation = 'balanse';
                     sendRequestBalanse();
                     
+                } else if (operation == 'lessons_all') {
+                    //рссписание
+                    sendRequestLessonsAll();
                 }
             }
         }
@@ -225,7 +250,7 @@ function startLoadBalanseHistory() {
         socket1.close();
         socket1 = null;
     }
-    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + (Math.floor(Math.random() * 800) + 101) + "/" + makeid(8) + "/websocket");
+    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + getCounter() + "/" + makeid(8) + "/websocket");
     socket1.onopen = function(e) {
         //getWeekNumber();
         socket1.send('["{\\"msg\\":\\"connect\\",\\"version\\":\\"1\\",\\"support\\":[\\"1\\",\\"pre2\\",\\"pre1\\"]}"]');
@@ -242,7 +267,6 @@ function startLoadBalanseHistory() {
             } else if (request.msg == 'added') {
                 //Получили данные пользователя
                 if (request.collection == 'users' && operation == 'login') {
-                    //console.log(request);
                     user_id = request.id;
                     if (request.fields.payBase) pay_base = request.fields.payBase;
                     if (request.fields.maxSlots) max_slots = request.fields.maxSlots;
@@ -268,7 +292,7 @@ function startLoadStudentsInfo() {
         socket1.close();
         socket1 = null;
     }
-    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + (Math.floor(Math.random() * 800) + 101) + "/" + makeid(8) + "/websocket");
+    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + getCounter() + "/" + makeid(8) + "/websocket");
     socket1.onopen = function(e) {
         //getWeekNumber();
         socket1.send('["{\\"msg\\":\\"connect\\",\\"version\\":\\"1\\",\\"support\\":[\\"1\\",\\"pre2\\",\\"pre1\\"]}"]');
@@ -278,7 +302,6 @@ function startLoadStudentsInfo() {
             let request = JSON.parse(JSON.parse(event.data.substr(1))[0]);
             if (request.msg == 'added' && operation == 'students_data') {
                 students_data[request.id] = request.fields;
-                // console.log(request);
                 // socket1.close();
                 // is_working = false;
             } else if (request.msg == 'ready' && operation == 'students_data') {
@@ -294,7 +317,6 @@ function startLoadStudentsInfo() {
             } else if (request.msg == 'added') {
                 //Получили данные пользователя
                 if (request.collection == 'users' && operation == 'login') {
-                    //console.log(request);
                     user_id = request.id;
                     if (request.fields.payBase) pay_base = request.fields.payBase;
                     if (request.fields.maxSlots) max_slots = request.fields.maxSlots;
@@ -339,7 +361,6 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
 });
 
 function loginResume() {
-    //socket1.send('["{\\"msg\\":\\"method\\",\\"method\\":\\"login\\",\\"params\\":[{\\"resume\\":\\"uoZmtPhQRA57nNTNR6EfhZK2oupoUV56NfGwhUylao9\\"}],\\"id\\":\\"1\\"}"]');
     socket1.send('["{\\"msg\\":\\"method\\",\\"method\\":\\"login\\",\\"params\\":[{\\"resume\\":\\"' + login_token + '\\"}],\\"id\\":\\"1\\"}"]');
 }
 
@@ -348,8 +369,23 @@ function sendRequestLessons() {
 }
 
 function sendSheduleRequest() {
-    socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + session_id + '\\",\\"name\\":\\"schedule.trainerSchedule\\",\\"params\\":[\\"' + getSendId() + '\\"]}"]');
+    socket1.send('["{\\"msg\\":\\"method\\",\\"method\\":\\"api.schedule.getTrainerLessons\\",\\"params\\":[{\\"trainerId\\":\\"' + getSendId() + '\\"}],\\"id\\":\\"28\\"}"]');
 }
+function sendRequestLessonsAll() {
+    if (lessons_list_temp.length>0) {
+        setTimeout(() => {
+            let lesson = lessons_list_temp.pop();
+            lessons_list_loading_id = lesson.scheduleId;
+            socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + getCounter() + 
+                '\\",\\"name\\":\\"schedule.view\\",\\"params\\":[\\"' + lesson.scheduleId +  '\\"]}"]');                    
+        }, 6);
+        
+    } else {
+        operation = 'students';
+        sendRequestStudents();
+    }
+}
+
 
 function sendRequestSkills() {
     socket1.send('["{\\"msg\\":\\"method\\",\\"method\\":\\"api.skills.getSkills\\",\\"params\\":[{}],\\"id\\":\\"5\\"}"]');
@@ -419,6 +455,15 @@ function addLessonToList(lessons, id) {
                     id: id
                 });
             }
+        }
+    }
+}
+
+function addLessonsToList(lessons) {
+
+    for (lesson of lessons) {
+        if (lesson.startTime >= week_start && lesson.startTime <= week_end) {
+            lessons_list_temp.push(lesson)
         }
     }
 }
@@ -498,7 +543,6 @@ function drawLessons() {
 
 function addLessonToHtml(lesson, id, className = '', cost = 0) {
     if (lesson.id != getSendId()) return;
-    //console.log(id, lesson);
     var id_day1 = Math.round(lesson.w / 86400000);
     var el = null;
     var els = document.querySelectorAll("a.trainer-schedule-lesson-container");
@@ -588,8 +632,6 @@ function addLessonToHtml(lesson, id, className = '', cost = 0) {
 }
 
 function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
-    //console.log(lesson);
-    // console.log(cost);
     if (div_title != null) {
         let ocenki = [0, 0, 0, 0];
         let ocenki_ru = [0, 0, 0, 0];
@@ -642,7 +684,6 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
         let s = lesson.c[i].id;
         if (!students_list[lesson.c[i].id]) continue;
         let student = students_list[lesson.c[i].id];
-        //console.log(student);
         let score = 'usual';
         if (lesson.c[i].type == 3) {
             switch (lesson.c[i].score) {
@@ -1222,7 +1263,7 @@ function startRequestsSheduleAdmin() {
         socket1.close();
         socket1 = null;
     }
-    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + (Math.floor(Math.random() * 800) + 101) + "/" + makeid(8) + "/websocket");
+    socket1 = new WebSocket("wss://" + hostname + "/sockjs/" + getCounter() + "/" + makeid(8) + "/websocket");
     socket1.onopen = function(e) {
         //getWeekNumber();
         socket1.send('["{\\"msg\\":\\"connect\\",\\"version\\":\\"1\\",\\"support\\":[\\"1\\",\\"pre2\\",\\"pre1\\"]}"]');
@@ -1239,7 +1280,6 @@ function startRequestsSheduleAdmin() {
             } else if (request.msg == 'added') {
                 //Получили данные пользователя
                 if (request.collection == 'users' && operation == 'login') {
-                    //console.log(request);
                     user_id = request.id;
                     tz = moment().tz(request.fields.tz)._offset / 60;
                     //Запрашиваем названия предметов
@@ -1312,6 +1352,7 @@ char_position_timer = setInterval(function() {
             
             chatWindowFixedButton.addEventListener('click', function(){
                 let chatWindow = document.querySelector(".chat-window");
+                let notificationsErrorContainer = document.querySelector(".notifications-error-container");
                 if (chatWindow.parentNode.classList.contains('chat-window-fixed')) {
                     chatWindow.style.width = chat_properties.width;
                     chatWindow.style.top = chat_properties.top;
@@ -1321,6 +1362,9 @@ char_position_timer = setInterval(function() {
                     this.innerHTML = '>';
                     let boxRight = document.querySelector(".box.box-right");
                     boxRight.style.marginRight = '0px';
+                    if (notificationsErrorContainer) {
+                        notificationsErrorContainer.style.right = '10px';
+                    }
                 } else {
                     chat_properties.width = chatWindow.style.width;
                     chat_properties.top = chatWindow.style.top;
@@ -1328,6 +1372,9 @@ char_position_timer = setInterval(function() {
                     chat_properties.right = chatWindow.style.right;
                     chat_properties.bottom = chatWindow.style.bottom;
                     this.innerHTML = '<';
+                    if (notificationsErrorContainer) {
+                        notificationsErrorContainer.style.right = parseInt(chat_properties.width) + 10 + 'px';
+                    }
                 }
                 chatWindow.parentNode.classList.toggle("chat-window-fixed");
                 this.classList.toggle("btn-chat-fixed-active");
