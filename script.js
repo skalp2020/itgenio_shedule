@@ -784,6 +784,15 @@ function drawCost() {
         }
         cost_all += cost;
     }
+    let elemToDelete = document.querySelectorAll(".heading-main-cost");
+    if (elemToDelete) {
+        for (let elem of elemToDelete) elem.remove();
+    }
+    elemToDelete = document.querySelectorAll(".heading-main-cost-more");
+    if (elemToDelete) {
+        for (let elem of elemToDelete) elem.remove();
+    }
+
     var items = document.querySelectorAll(".schedule-menu");
     for (var i = items.length - 1; i >= 0; i--) {
         let span = document.createElement("a");
@@ -852,10 +861,17 @@ function getStartTime() {
     var dayLength = 24 * 60 * 60 * 1000;
     var fromDate = new Date();
     var currentDate;
-    if (location.href.indexOf("t=") == -1) {
+    let calendarItemCell = document.querySelector(".grid-calendar-item-cell:first-child");
+    if (!calendarItemCell) {
         currentDate = +new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
     } else {
-        currentDate = location.href.substr(location.href.indexOf("t=") + 2) * 1;
+        let t = calendarItemCell.querySelector(".panel-title").innerHTML;
+        let day = parseInt(t.slice(0,2));
+        let month = parseInt(t.slice(3,5))-1;
+        let year = fromDate.getFullYear();
+        if (fromDate.getMonth()>month) year++;
+        if (month-fromDate.getMonth()>10) year--;
+        currentDate = +new Date(year, month, day);
     }
     return currentDate;
 }
