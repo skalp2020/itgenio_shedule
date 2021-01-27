@@ -36,6 +36,7 @@ var option_currency_profile_rate = 1;
 var option_date_pay = 5;
 var option_show_student_city = true;
 var option_show_student_time = true;
+var option_show_button_back = false;
 var skills_data = { "default": "images/default.png" };
 var coefs_data = { "default": "1" };
 var skills_resource = 'https://itgenio.div42.ru/';
@@ -134,9 +135,11 @@ function check_state(){
         checkStudentMutes();
     }
 
+
     setImageLoading();
     setColorScheme();
     setTimeStudents();
+    setBackButton();
 
     setTimeout(check_state, 200);
 }
@@ -334,7 +337,7 @@ function startLoadStudentsInfo() {
 chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
     'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
     'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay', 'skalp_color_scheme', 
-    'skalp_show_student_city', 'skalp_show_student_time'], function(items) {
+    'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_button_back'], function(items) {
     if (items['skalp_show_count'] != null) option_show_count = items['skalp_show_count'];
     if (items['skalp_show_language'] != null) option_show_language = items['skalp_show_language'];
     if (items['skalp_show_subject'] != null) option_show_subject = items['skalp_show_subject'];
@@ -357,6 +360,7 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
     }
     if (items['skalp_show_student_city'] != null) option_show_student_city = items['skalp_show_student_city'];
     if (items['skalp_show_student_time'] != null) option_show_student_time = items['skalp_show_student_time'];
+    if (items['skalp_show_button_back'] != null) option_show_button_back = items['skalp_show_button_back'];
 
 });
 
@@ -2073,4 +2077,22 @@ function setTimeStudents() {
             }
         }
     }
+}
+
+//Добавить кнопку Назад
+function setBackButton() {
+    if (!option_show_button_back) return;
+    let el = document.querySelector('.skalp_button_back');
+    if (el) return;
+    let el_parent = document.querySelector('.top-bar .left');
+    if (!el_parent) return;
+    
+    el = document.createElement("a");
+    el.className = 'skalp_button_back';
+    el.innerHTML = '&larr;';
+    el_parent.prepend(el);
+
+    el.addEventListener('click', function(){
+        history.back();
+    });
 }

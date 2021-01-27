@@ -52,6 +52,8 @@ function saveOptions() {
     items_to_save["skalp_show_student_city"] = show_student_city.checked;
     var show_student_time = document.getElementById("show_student_time");
     items_to_save["skalp_show_student_time"] = show_student_time.checked;
+    var show_button_back = document.getElementById("show_button_back");
+    items_to_save["skalp_show_button_back"] = show_button_back.checked;
 
     chrome.storage.sync.set(items_to_save, function() {
     });
@@ -71,7 +73,8 @@ function restoreOptions() {
     chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
         'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
         'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay',
-        'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time'], function(items) {
+        'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time', 
+        'skalp_show_button_back'], function(items) {
     	let show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
 		var countCheckbox = document.getElementById("show_count");
@@ -131,6 +134,11 @@ function restoreOptions() {
         if (items['skalp_show_student_time']!= null) show_student_time = items['skalp_show_student_time'];
         var studentTimeCheckbox = document.getElementById("show_student_time");
         studentTimeCheckbox.checked = show_student_time;
+
+        let show_button_back = false;
+        if (items['skalp_show_button_back']!= null) show_button_back = items['skalp_show_button_back'];
+        var studentButtonBackCheckbox = document.getElementById("show_button_back");
+        studentButtonBackCheckbox.checked = show_button_back;
 
         let color_scheme = 'default';
         if (items['skalp_color_scheme']!= null) color_scheme = items['skalp_color_scheme'];

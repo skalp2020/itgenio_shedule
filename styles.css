@@ -486,3 +486,23 @@
     font-size: 80%;
     color: #bbb;
 }
+
+.top-bar .left > .skalp_button_back{
+    color: #666;
+    text-decoration: none;
+    border: 1px solid #666;
+    width: 24px;
+    height: 24px;
+    line-height: 20px;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    margin-right: 12px!important;
+}
+.top-bar .left > .skalp_button_back:hover{
+    color: #50965c;
+    text-decoration: none;
+    border-color: #50965c;
+}
