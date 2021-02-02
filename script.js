@@ -190,7 +190,7 @@ function startLoadShedule() {
                     //Получили содержимое урока
                     //Добавляем урок в список
                     // if (request.id == lessons_list_loading_id) {
-                        addLessonToList(request.fields, request.id);
+                        addLessonToList(request.fields, request.id );
                     // }
                 }
                 
@@ -420,6 +420,7 @@ function sendRequestStudents() {
                 students_id.push(lessons_list[i].lesson.c[j].id);
         }
     }
+    if (!students_id.length) return;
     let query = '["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + getSendId() + '\\",\\"name\\":\\"users.view\\",\\"params\\":[[\\"' + students_id[0] + '\\"';
     for (var i = 1; i < students_id.length; i++) {
         query += ',\\"' + students_id[i] + '\\"';
@@ -439,10 +440,9 @@ function sendRequestStudents2() {
 }
 
 function addLessonToList(lessons, id) {
-
     for (let i = 0; i <= lessons.finishedSlots.length; i++) {
         if (lessons.finishedSlots[i]) {
-            if (lessons.finishedSlots[i].id==user_id && lessons.finishedSlots[i].st.s >= week_start && lessons.finishedSlots[i].st.s <= week_end) {
+            if (lessons.finishedSlots[i].st.s >= week_start && lessons.finishedSlots[i].st.s <= week_end) {
                 lessons_list.push({
                     lesson: lessons.finishedSlots[i],
                     cost: calcCost(lessons.finishedSlots[i]),
@@ -453,14 +453,14 @@ function addLessonToList(lessons, id) {
     }
     for (let i = 0; i <= lessons.slots.length; i++) {
         if (lessons.slots[i]) {
-            if (lessons.slots[i].id==user_id && lessons.slots[i].st.s >= week_start && lessons.slots[i].st.s <= week_end) {
+            if (lessons.slots[i].st.s >= week_start && lessons.slots[i].st.s <= week_end) {
                 lessons_list.push({
                     lesson: lessons.slots[i],
                     cost: calcCost(lessons.slots[i]),
                     id: id
                 });
             }
-            if (lessons.slots[i].id==user_id && lessons.slots[i].st.e >= week_start && lessons.slots[i].st.e <= week_end_pay) {
+            if (lessons.slots[i].st.e >= week_start && lessons.slots[i].st.e <= week_end_pay) {
                 lessons_list_pay.push({
                     lesson: lessons.slots[i],
                     cost: calcCost(lessons.slots[i]),
@@ -477,6 +477,12 @@ function addLessonsToList(lessons) {
         if (lesson.startTime >= week_start && lesson.startTime <= week_end) {
             lessons_list_temp.push(lesson)
         }
+    }
+}
+
+function addLessonToList2(lesson) {
+    if (lesson.fromDate >= week_start && lesson.fromDate <= week_end) {
+        lessons_list_temp.push(lesson)
     }
 }
 
@@ -940,8 +946,8 @@ function prepareMonth() {
 function getSendId() {
     var send_id = user_id;
     let last = location.href.slice(location.href.lastIndexOf('/') + 1);
-    if (last.indexOf("?t=") != -1) {
-        last = last.slice(0, last.indexOf("?t="));
+    if (last.indexOf("?time=") != -1) {
+        last = last.slice(0, last.indexOf("?time="));
     }
     if (last.length > 0 && last.indexOf("schedule") == -1 && last.indexOf("profile") == -1) send_id = last;
     return send_id;
