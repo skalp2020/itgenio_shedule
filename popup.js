@@ -54,6 +54,8 @@ function saveOptions() {
     items_to_save["skalp_show_student_time"] = show_student_time.checked;
     var show_button_back = document.getElementById("show_button_back");
     items_to_save["skalp_show_button_back"] = show_button_back.checked;
+    var show_student_skill = document.getElementById("show_student_skill");
+    items_to_save["skalp_show_student_skill"] = show_student_skill.checked;
 
     chrome.storage.sync.set(items_to_save, function() {
     });
@@ -74,7 +76,7 @@ function restoreOptions() {
         'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
         'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay',
         'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time', 
-        'skalp_show_button_back'], function(items) {
+        'skalp_show_button_back', 'skalp_show_student_skill'], function(items) {
     	let show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
 		var countCheckbox = document.getElementById("show_count");
@@ -148,6 +150,11 @@ function restoreOptions() {
         Array.prototype.forEach.call(colorSchemeRadios, function(radio) {
            radio.addEventListener('change', colorSchemeChange);
         });
+
+        let show_student_skill = false;
+        if (items['skalp_show_student_skill']!= null) show_student_skill = items['skalp_show_student_skill'];
+        var studentSkillCheckbox = document.getElementById("show_student_skill");
+        studentSkillCheckbox.checked = show_student_skill;
 
     });
 }

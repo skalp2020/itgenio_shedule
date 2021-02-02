@@ -1,58 +1,80 @@
 <!DOCTYPE doctype html>
 <html>
-    <head>
-        <title>
-            ItGen.io
-        </title>
-        <meta charset="utf-8"/>
-        <style type="text/css">
-            body {
-        margin: 10px;
-        white-space: nowrap;
-      }
 
-      h1 {
+<head>
+    <title>
+        ItGen.io
+    </title>
+    <meta charset="utf-8" />
+    <style type="text/css">
+    body {
+        margin: 10px;
+    }
+
+    h1 {
         font-size: 15px;
-      }
-      .section{
+    }
+
+    .section {
         border: 1px solid #ddd;
         border-radius: 8px;
         padding: 8px;
         margin: 12px 0;
-      }
-      .title {
+    }
+
+    .title {
         font-size: 13px;
         font-style: italic;
-      }
-      .title2{
+    }
+
+    .title2 {
         font-weight: bold;
         margin-bottom: 8px;
-      }
+        text-align: center;
+    }
 
-      #container {
+    #container {
         align-items: center;
         display: flex;
         justify-content: space-between;
-      }
-      #status{
+    }
+
+    #status {
         color: #09b92a;
         font-weight: bold;
-      }
-      input[type="text"] {
+    }
+
+    input[type="text"] {
         width: 40px;
-      }
-      .option1{
-        margin: 4px 0;
-      }
-        </style>
-        <script src="popup.js"></script>
-    </head>
-    <body>
-        <h1>
-            Itgenio. Доп. возможности
-        </h1>
-        <div class="section">
-            <div class="title2">Общие настройки:</div>
+    }
+
+    .row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        min-width: 400px;
+    }
+
+    .row>* {
+        flex: 0 0 50%;
+        box-sizing: border-box;
+        padding: 6px;
+        width: 50%;
+    }
+    .row>*:nth-child(2n-1) {
+        border-right: 1px solid #ccc;
+    }
+    </style>
+    <script src="popup.js"></script>
+</head>
+
+<body>
+    <h1>
+        Itgenio. Дополнительные возможности
+    </h1>
+    <div class="section">
+        <div class="title2">Общие настройки:</div>
+        <div class="row">
             <div class="option2">
                 <label>
                     Цветовая схема
@@ -67,8 +89,10 @@
                 </label>
             </div>
         </div>
-        <div class="section">
-            <div class="title2">На странице урока:</div>
+    </div>
+    <div class="section">
+        <div class="title2">На странице урока:</div>
+        <div class="row">
             <div class="option1">
                 <label>
                     <input id="show_student_city" type="checkbox" />
@@ -81,10 +105,17 @@
                     показывать время ученика
                 </label>
             </div>
+            <div class="option1">
+                <label>
+                    <input id="show_student_skill" type="checkbox" />
+                    показывать иконку самостоятельности
+                </label>
+            </div>
         </div>
-
-        <div class="section">
-            <div class="title2">На странице расписания:</div>
+    </div>
+    <div class="section">
+        <div class="title2">На странице расписания:</div>
+        <div class="row">
             <div class="option1">
                 <label>
                     <input id="show_count" type="checkbox" />
@@ -94,28 +125,27 @@
             <div class="option1">
                 <label>
                     <input id="show_language" type="checkbox" />
-                        язык
+                    язык
                 </label>
             </div>
             <div class="option1">
                 <label>
                     <input id="show_subject" type="checkbox" />
-                        предмет (направление)
+                    предмет (направление)
                 </label>
             </div>
             <div class="option1">
                 <label>
                     <input id="show_skill" type="checkbox" />
-                        уровень самостоятельности
+                    уровень самостоятельности
                 </label>
             </div>
             <div class="option1">
                 <label>
                     <input id="show_cost" type="checkbox" />
-                        оплату
-                </label>
-            </div>
-            <div class="option2">
+                    оплату
+                </label><br>
+            
                 <label>
                     Валюта
                 </label>
@@ -130,19 +160,22 @@
             </div>
             <div class="option1">
                 <label>
-                    день выдачи зарплаты
-                    <input id="date_pay" type="text" />
+                    <input id="show_month" type="checkbox" />
+                    расписание на месяц<br> (4 недели)
                 </label>
             </div>
             <div class="option1">
                 <label>
-                    <input id="show_month" type="checkbox" />
-                        расписание на месяц (4 недели)
+                    день выдачи зарплаты
+                    <input id="date_pay" type="text" />
                 </label>
             </div>
+            
         </div>
-        <div class="section">
-            <div class="title2">На странице профиля:</div>
+    </div>
+    <div class="section">
+        <div class="title2">На странице профиля:</div>
+        <div class="row">
             <div class="option2">
                 <label>
                     Валюта
@@ -157,13 +190,14 @@
                 </select>
             </div>
         </div>
-        
-        <div>
-            <button id="btn_save">
-                Сохранить
-            </button>
-        </div>
-        <div id="status">
-        </div>
-    </body>
+    </div>
+    <div>
+        <button id="btn_save">
+            Сохранить
+        </button>
+        <span id="status"></span>
+    </div>
+    
+</body>
+
 </html>

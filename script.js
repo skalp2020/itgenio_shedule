@@ -37,6 +37,7 @@ var option_date_pay = 5;
 var option_show_student_city = true;
 var option_show_student_time = true;
 var option_show_button_back = false;
+var option_show_student_skill = false;
 var skills_data = { "default": "images/default.png" };
 var coefs_data = { "default": "1" };
 var skills_resource = 'https://itgenio.div42.ru/';
@@ -307,6 +308,11 @@ function startLoadStudentsInfo() {
                 students_data[request.id] = request.fields;
                 // socket1.close();
                 // is_working = false;
+            } else if (request.msg == 'result' && request.id == 5) {
+                //Получили предметы
+                addSkillsToList(request.result);
+                //Запрашиваем данные студентов
+                sendRequestStudents2();
             } else if (request.msg == 'ready' && operation == 'students_data') {
                 operation = '';
                 //Отображаем данные про студентов
@@ -325,8 +331,8 @@ function startLoadStudentsInfo() {
                     if (request.fields.maxSlots) max_slots = request.fields.maxSlots;
                     tz = moment().tz(request.fields.tz)._offset / 60;
                     operation = 'students_data';
-                    //Запрашиваем данные студентов
-                    sendRequestStudents2();
+                    //Запрашиваем названия предметов
+                    sendRequestSkills();
                 } 
             } 
         }
@@ -337,7 +343,8 @@ function startLoadStudentsInfo() {
 chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
     'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
     'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay', 'skalp_color_scheme', 
-    'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_button_back'], function(items) {
+    'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_button_back',
+    'skalp_show_student_skill'], function(items) {
     if (items['skalp_show_count'] != null) option_show_count = items['skalp_show_count'];
     if (items['skalp_show_language'] != null) option_show_language = items['skalp_show_language'];
     if (items['skalp_show_subject'] != null) option_show_subject = items['skalp_show_subject'];
@@ -361,6 +368,7 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
     if (items['skalp_show_student_city'] != null) option_show_student_city = items['skalp_show_student_city'];
     if (items['skalp_show_student_time'] != null) option_show_student_time = items['skalp_show_student_time'];
     if (items['skalp_show_button_back'] != null) option_show_button_back = items['skalp_show_button_back'];
+    if (items['skalp_show_student_skill'] != null) option_show_student_skill = items['skalp_show_student_skill'];
 
 });
 
@@ -865,17 +873,10 @@ function getStartTime() {
     var dayLength = 24 * 60 * 60 * 1000;
     var fromDate = new Date();
     var currentDate;
-    let calendarItemCell = document.querySelector(".grid-calendar-item-cell:first-child");
-    if (!calendarItemCell) {
+    if (location.href.indexOf("time=") == -1) {
         currentDate = +new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
     } else {
-        let t = calendarItemCell.querySelector(".panel-title").innerHTML;
-        let day = parseInt(t.slice(0,2));
-        let month = parseInt(t.slice(3,5))-1;
-        let year = fromDate.getFullYear();
-        if (fromDate.getMonth()>month) year++;
-        if (month-fromDate.getMonth()>10) year--;
-        currentDate = +new Date(year, month, day);
+        currentDate = location.href.substr(location.href.indexOf("time=") + 5) * 1;
     }
     return currentDate;
 }
@@ -1835,6 +1836,43 @@ function writeStudentsDataLesson() {
                     if (students_data[id].city) s += ', ' + students_data[id].city;
                     el.innerHTML = s;
                     el_to_add.appendChild(el); 
+                }
+            }
+
+            if (option_show_student_skill) {
+                el = els[i].querySelector('.skill > *:first-child');
+                if (el) {
+                    let skill_id = 0;
+                    for (let key in skills_list) {
+                        if (skills_list[key] == el.innerText) {
+                            skill_id = key;
+                        }
+                    }
+
+                    if (skill_id) {
+                        let el_to_add2 = els[i].querySelector('.online-status');
+                        if (el_to_add2) {
+                            let score1 = 'usual';
+                            switch (students_data[id].rating[skill_id].avg) {
+                            case 1:
+                                score1 = 'independent';
+                                break;
+                            case 2:
+                                score1 = 'usual';
+                                break;
+                            case 3:
+                                score1 = 'dependent';
+                                break;
+                            case 4:
+                                score1 = 'capricious';
+                                break;
+                            }
+                            el = document.createElement("span");
+                            el.className = 'student_skill_level';
+                            el.innerHTML = '<img src="/img/' + score1 + '.png" alt="">'
+                            el_to_add2.after(el);
+                        }
+                    }
                 }
             }
 

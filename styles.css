@@ -506,3 +506,8 @@
     text-decoration: none;
     border-color: #50965c;
 }
+.student_skill_level img{
+    height: 16px;
+    vertical-align: sub;
+    margin-right: 4px;
+}
