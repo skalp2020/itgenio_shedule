@@ -8,11 +8,13 @@ var user_balanse = 0;
 var socket1;
 var lessons_list = [];
 var lessons_list_temp = [];
+var lessons_list_temp_ids = [];
 var lessons_list_loading_id = 0;
 var lessons_list_pay = [];
 var skills_list = {};
 var students_list = {};
 var operation = '';
+var operation_lesson_id = '';
 var pay_base = 0;
 var max_slots = 0;
 var tz = 0;
@@ -201,6 +203,7 @@ function startLoadShedule() {
                 operation = 'shedule';
                 lessons_list = [];
                 lessons_list_temp = [];
+                lessons_list_temp_ids = [];
                 lessons_list_pay = [];
                 week_start = getStartTime();
                 week_end_pay = getWeekEndPay();
@@ -388,6 +391,7 @@ function sendRequestLessonsAll() {
         setTimeout(() => {
             let lesson = lessons_list_temp.pop();
             lessons_list_loading_id = lesson.scheduleId;
+            operation_lesson_id = lesson.scheduleId
             socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + getCounter() + 
                 '\\",\\"name\\":\\"schedule.view\\",\\"params\\":[\\"' + lesson.scheduleId +  '\\"]}"]');                    
         }, 6);
@@ -440,6 +444,8 @@ function sendRequestStudents2() {
 }
 
 function addLessonToList(lessons, id) {
+    if (lessons_list_temp_ids.indexOf(id)==-1) return;
+
     for (let i = 0; i <= lessons.finishedSlots.length; i++) {
         if (lessons.finishedSlots[i]) {
             if (lessons.finishedSlots[i].st.s >= week_start && lessons.finishedSlots[i].st.s <= week_end) {
@@ -475,7 +481,8 @@ function addLessonsToList(lessons) {
 
     for (lesson of lessons) {
         if (lesson.startTime >= week_start && lesson.startTime <= week_end) {
-            lessons_list_temp.push(lesson)
+            lessons_list_temp.push(lesson);
+            lessons_list_temp_ids.push(lesson.scheduleId);
         }
     }
 }
@@ -517,14 +524,14 @@ function calcCost(lesson) {
                     if (coefs_data[lesson.c[i].subject]!=undefined) {
                         coef = parseFloat(coefs_data[lesson.c[i].subject]);
                     }
-                    coef2 = 1;
+                    coef2 = 0;
                     if (lesson.c[i].lang == 'en') {
-                        coef2 = 2;
+                        coef2 = 1;
                     }
                     let coef3 = 1;
                     if (lesson.c[i].type==1 || lesson.c[i].type==2) coef3 = 0.7;
                     
-                    cost += pay_base * coef * coef2 * coef3;
+                    cost += pay_base * coef * coef3 + pay_base * coef * coef2 * coef3;
                     count++;
                 }
             }
@@ -1576,7 +1583,6 @@ function startLoadFavoriteTrainers(){
         if (err != null) {
             console.error(err);
         } else {
-            //console.log(data);
             for (let key in ids1) {
                 if (data.fav1[ids1[key]]!==undefined) {
                     users1[key].date = data.fav1[ids1[key]];
@@ -1855,7 +1861,8 @@ function writeStudentsDataLesson() {
                         }
                     }
 
-                    if (skill_id) {
+                    let el_result = els[i].querySelector('.student_skill_level');
+                    if (skill_id && !el_result) {
                         let el_to_add2 = els[i].querySelector('.online-status');
                         if (el_to_add2) {
                             let score1 = 'usual';
