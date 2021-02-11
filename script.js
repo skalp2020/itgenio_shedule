@@ -36,6 +36,7 @@ var option_currency_profile_id = true;
 var option_currency_profile_mark = '$';
 var option_currency_profile_rate = 1;
 var option_date_pay = 5;
+var option_mute_sec = 0;
 var option_show_student_city = true;
 var option_show_student_time = true;
 var option_show_button_back = false;
@@ -60,6 +61,11 @@ var students_skypes = {};
 
 var need_mute = localStorage.getItem('need_mute_student');
 if (need_mute===undefined) need_mute=0;
+var need_autochat = localStorage.getItem('need_autochat_student');
+if (need_autochat===undefined) need_autochat=0;
+var autochat_user_id = '';
+
+var weeks_data = [];
 
 const MONTH = {
     0: 'январь',
@@ -137,12 +143,16 @@ function check_state(){
     if (!is_working) {
         checkStudentMutes();
     }
-
+    //Нужно ли автоматически переключать чат
+    if (!is_working) {
+        checkStudentAutoChat();
+    }
 
     setImageLoading();
     setColorScheme();
     setTimeStudents();
     setBackButton();
+    setAutoChat();
 
     setTimeout(check_state, 200);
 }
@@ -347,7 +357,7 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
     'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
     'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay', 'skalp_color_scheme', 
     'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_button_back',
-    'skalp_show_student_skill'], function(items) {
+    'skalp_show_student_skill', 'skalp_mute_sec'], function(items) {
     if (items['skalp_show_count'] != null) option_show_count = items['skalp_show_count'];
     if (items['skalp_show_language'] != null) option_show_language = items['skalp_show_language'];
     if (items['skalp_show_subject'] != null) option_show_subject = items['skalp_show_subject'];
@@ -355,6 +365,7 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
     if (items['skalp_show_cost'] != null) option_show_cost = items['skalp_show_cost'];
     if (items['skalp_show_month'] != null) option_show_month = items['skalp_show_month'];
     if (items['skalp_date_pay'] != null) option_date_pay = items['skalp_date_pay'];
+    if (items['skalp_mute_sec'] != null) option_mute_sec = items['skalp_mute_sec'];
     //if (items['skalp_show_smiles'] != null) option_show_smiles = items['skalp_show_smiles'];
     if (items['skalp_currency_id'] != null) {
         option_currency_id = items['skalp_currency_id'];
@@ -451,9 +462,19 @@ function addLessonToList(lessons, id) {
             if (lessons.finishedSlots[i].st.s >= week_start && lessons.finishedSlots[i].st.s <= week_end) {
                 lessons_list.push({
                     lesson: lessons.finishedSlots[i],
-                    cost: calcCost(lessons.finishedSlots[i]),
+                    cost: calcCost(lessons.finishedSlots[i], lessons.lessonFormat),
                     id: id
                 });
+            }
+            for (let nweek = 0; nweek < weeks_data.length; nweek++) {
+                if (lessons.finishedSlots[i].st.s>=weeks_data[nweek].dateStart && lessons.finishedSlots[i].st.s<weeks_data[nweek].dateEnd) {
+                    weeks_data[nweek].lessons++;
+                    let n = 0;
+                    for (let t of lessons.finishedSlots[i].c) {
+                        if (t.s!="skipped") n++;
+                    }
+                    weeks_data[nweek].students += n;
+                }
             }
         }
     }
@@ -462,16 +483,26 @@ function addLessonToList(lessons, id) {
             if (lessons.slots[i].st.s >= week_start && lessons.slots[i].st.s <= week_end) {
                 lessons_list.push({
                     lesson: lessons.slots[i],
-                    cost: calcCost(lessons.slots[i]),
+                    cost: calcCost(lessons.slots[i], lessons.lessonFormat),
                     id: id
                 });
             }
             if (lessons.slots[i].st.e >= week_start && lessons.slots[i].st.e <= week_end_pay) {
                 lessons_list_pay.push({
                     lesson: lessons.slots[i],
-                    cost: calcCost(lessons.slots[i]),
+                    cost: calcCost(lessons.slots[i], lessons.lessonFormat),
                     id: id
                 });
+            }
+            for (let nweek = 0; nweek < weeks_data.length; nweek++) {
+                if (lessons.slots[i].st.s>=weeks_data[nweek].dateStart && lessons.slots[i].st.s<weeks_data[nweek].dateEnd) {
+                    weeks_data[nweek].lessons++;
+                    let n = 0;
+                    for (let t of lessons.slots[i].c) {
+                        if (t.s!="skipped") n++;
+                    }
+                    weeks_data[nweek].students += n;
+                }
             }
         }
     }
@@ -508,7 +539,7 @@ function addLessonToListAdmin(lessons, id) {
     }
 }
 
-function calcCost(lesson) {
+function calcCost(lesson, lessonFormat = 0) {
     let ocenki = [0, 0, 0, 0];
     let ocenki_ru = [0, 0, 0, 0];
     let ocenki_en = [0, 0, 0, 0];
@@ -517,36 +548,69 @@ function calcCost(lesson) {
     let cost = 0;
     let count = 0;
     if (pay_base > 0) {
-        for (var i = 0; i < lesson.c.length; i++) {
-            if (lesson.c[i].s.indexOf("skipped") == -1) {
-                if (lesson.c[i].type >= 1 && lesson.c[i].type <= 3) {
-                    coef = 1;
-                    if (coefs_data[lesson.c[i].subject]!=undefined) {
-                        coef = parseFloat(coefs_data[lesson.c[i].subject]);
+        if (lessonFormat==0) {
+            for (var i = 0; i < lesson.c.length; i++) {
+                if (lesson.c[i].s.indexOf("skipped") == -1) {
+                    if (lesson.c[i].type >= 1 && lesson.c[i].type <= 3) {
+                        coef = 1;
+                        if (coefs_data[lesson.c[i].subject]!=undefined) {
+                            coef = parseFloat(coefs_data[lesson.c[i].subject]);
+                        }
+                        coef2 = 0;
+                        if (lesson.c[i].lang != 'ru') {
+                            coef2 = 1;
+                        }
+                        let coef3 = 1;
+                        if (lesson.c[i].type==1 || lesson.c[i].type==2) coef3 = 0.7;
+                        
+                        cost += Math.round((pay_base * coef * coef3 + pay_base * coef2 * coef3)*100)/100;
+                        count++;
                     }
-                    coef2 = 0;
-                    if (lesson.c[i].lang == 'en') {
-                        coef2 = 1;
-                    }
-                    let coef3 = 1;
-                    if (lesson.c[i].type==1 || lesson.c[i].type==2) coef3 = 0.7;
-                    
-                    cost += pay_base * coef * coef3 + pay_base * coef * coef2 * coef3;
-                    count++;
                 }
             }
+            if (count>0) {
+                let date = new Date(lesson.st.s);
+                let fromDate = new Date();
+                let hours = date.getHours() + fromDate.getTimezoneOffset() / 60 + tz;
+                if (hours >= 22 || hours < 1) cost += pay_base * 2;
+                if (hours > 5 && hours <= 8) cost += pay_base * 2;
+                if (hours >= 1 && hours <= 5) cost += pay_base * 4;
+                if ((max_slots / 2) * pay_base > cost) cost = (max_slots / 2) * pay_base;
+            } else {
+                cost = 0;
+            }
+        } else if (lessonFormat==1){
+            for (var i = 0; i < lesson.c.length; i++) {
+                if (lesson.c[i].s.indexOf("skipped") == -1) {
+                    if (lesson.c[i].type >= 1 && lesson.c[i].type <= 3) {
+                        coef = 1;
+                        if (coefs_data[lesson.c[i].subject]!=undefined) {
+                            coef = parseFloat(coefs_data[lesson.c[i].subject]);
+                        }
+                        coef2 = 1;
+                        if (lesson.c[i].lang != 'ru') {
+                            coef2 = 2;
+                        }
+                        let coef3 = 1;
+                        if (lesson.c[i].type==1 || lesson.c[i].type==2) coef3 = 0.7;
+                        
+                        cost += Math.round((pay_base * 2.5 * coef2)*100)/100;
+                        count++;
+                    }
+                }
+            }
+            if (count>0) {
+                let date = new Date(lesson.st.s);
+                let fromDate = new Date();
+                let hours = date.getHours() + fromDate.getTimezoneOffset() / 60 + tz;
+                if (hours >= 22 || hours < 1) cost += pay_base * 1;
+                if (hours > 5 && hours <= 8) cost += pay_base * 1;
+                if (hours >= 1 && hours <= 5) cost += pay_base * 2;
+            } else {
+                cost = 0;
+            }
         }
-        if (count>0) {
-            let date = new Date(lesson.st.s);
-            let fromDate = new Date();
-            let hours = date.getHours() + fromDate.getTimezoneOffset() / 60 + tz;
-            if (hours >= 22 || hours < 1) cost += pay_base * 2;
-            if (hours > 5 && hours <= 8) cost += pay_base * 2;
-            if (hours >= 1 && hours <= 5) cost += pay_base * 4;
-            if ((max_slots / 2) * pay_base > cost) cost = (max_slots / 2) * pay_base;
-        } else {
-            cost = 0;
-        }
+        
     }
     return cost;
 }
@@ -852,6 +916,51 @@ function drawCost() {
         span_more.innerHTML += '<div class="cost-item"><span class="option">Осталось до зарплаты:</span> ' + lessons_list_pay.length + ' урока(ов) <span class="value">+' + (sum_lessons*option_currency_rate).toFixed(2) + option_currency_mark + '</span></div>';
         span_more.innerHTML += '<div class="cost-item"><span class="option">Предполагаемый размер зарплаты:</span> <span class="value">' + ((parseFloat(user_balanse)+parseFloat(sum_lessons))*option_currency_rate).toFixed(2) + option_currency_mark + '</span><div>';
         items[i].appendChild(span_more)
+
+
+        span = document.createElement("span");
+        let count1 = document.querySelectorAll('.trainer-schedule-lesson-container').length;
+        let count2 = document.querySelectorAll('.students-list .student:not(.student-skipped)').length;
+        span.innerHTML = count1 + " занятий (" +  count2 + ' чел/час) <span class="heading-counts-icon"></span>';
+        span.className = "heading-counts";
+        span.addEventListener('click', function(){
+            let active = this.classList.contains("active");
+            let elems = document.querySelectorAll('.heading-counts-more,.heading-counts-icon');
+            for (let elem of elems) {
+                elem.classList.toggle('active');
+            }
+
+            this.classList.toggle('active');
+        });
+        items[i].appendChild(span);
+
+        span_more = document.createElement("div");
+        span_more.className = "heading-counts-more";
+        let html = '<table class="table-counts-more">';
+        html += '<tr><td>Неделя</td><td>Занятий</td><td>Учеников</td></tr>';
+        for (let row of weeks_data) {
+            if (row.lessons==0) continue;
+            let ds = new Date(row.dateStart);
+            let de = new Date(row.dateEnd);
+            de.setDate(de.getDate()-1);
+            let d1 = ds.getDate()<10?'0'+ds.getDate():ds.getDate();
+            let m1 = ds.getMonth()<9?'0'+(ds.getMonth()+1):(ds.getMonth()+1);
+            let d2 = de.getDate()<10?'0'+de.getDate():de.getDate();
+            let m2 = de.getMonth()<9?'0'+(de.getMonth()+1):(de.getMonth()+1);
+            html += '<tr>';
+            html += '<td>';
+            html += d1 + '.' + m1 + ' - ' + d2 + '.' + m2;
+            html += '</td>';
+            html += '<td>';
+            html += row.lessons;
+            html += '</td>';
+            html += '<td>';
+            html += row.students;
+            html += '</td>';
+            html += '</tr>';
+        }
+        span_more.innerHTML = html;
+        items[i].appendChild(span_more)
     }
 }
 
@@ -891,6 +1000,27 @@ function getStartTime() {
     } else {
         currentDate = location.href.substr(location.href.indexOf("time=") + 5) * 1;
     }
+
+    weeks_data = [];
+    let dt = new Date(currentDate);
+    let dt2 = new Date(currentDate);
+    let dow = dt.getDay();
+    dt.setDate(dt.getDate() - dow + 1 + 28);
+    dt2.setDate(dt2.getDate() - dow + 1 + 35)
+
+    for (var i = 0; i < 20; i++) {
+        dt.setDate(dt.getDate() - 7)
+        dt2.setDate(dt2.getDate() - 7)
+        let t = {
+            dateStart: +dt,
+            dateEnd: +dt2,
+            lessons: 0,
+            students: 0
+        }
+        weeks_data.push(t);
+    }
+
+
     return currentDate;
 }
 
@@ -1856,7 +1986,7 @@ function writeStudentsDataLesson() {
                 if (el) {
                     let skill_id = 0;
                     for (let key in skills_list) {
-                        if (skills_list[key] == el.innerText) {
+                        if (skills_list[key].toLowerCase() == el.innerText.toLowerCase()) {
                             skill_id = key;
                         }
                     }
@@ -2047,9 +2177,34 @@ function checkStudentMutes() {
         }
     }
 }
+
+//Добавляем возможность автоматически переключать чат на выбранного ученика
+function checkStudentAutoChat() {
+    let button_switch_autochat = document.querySelector('.trainer-lesson-actions .label-toggle-autochat');
+    if (!button_switch_autochat) {
+
+        let el_to_add = document.querySelector('.trainer-lesson-actions > div:last-child');
+        if (el_to_add) {
+            let el;
+
+            el = document.createElement("label");
+            el.className = 'label-toggle-autochat';
+            el.title = 'Автоматически переключать чат на выбранного ученика';
+            let s = '';
+            s+='<input type="checkbox" ';
+            if (need_autochat==1) s+= ' checked';
+            s+='> <span>AutoChat</span>';
+            el.innerHTML = s;
+            el.addEventListener("change", switchAutoChat);
+            el_to_add.prepend(el);    
+        }
+
+    }
+}
+
 //Глушить других учеников
 function muteOtherStudents(){
-    if (!need_mute) return;
+    if (need_mute!=1) return;
 
     let active_user_id = this.dataset.user_id;
     if (!active_user_id) return;
@@ -2074,18 +2229,39 @@ function muteOtherStudents(){
         let el_user_id = el_button.dataset.user_id;
         if (!el_active_is_active) {
             if (el_user_id!=active_user_id && el_input.value!=0) {
-                el_button.dispatchEvent(event);
+                setTimeout(function(){ el_button.dispatchEvent(event); }, option_mute_sec*1000);
             }
             if (el_user_id==active_user_id && el_input.value==0) {
                 el_button.dispatchEvent(event);
             }    
         } else {
             if (el_user_id==active_user_id && el_input.value!=0) {
-                el_button.dispatchEvent(event);
+                setTimeout(function(){ el_button.dispatchEvent(event); }, option_mute_sec*1000);
             } 
         }
         
     }
+}
+
+//АвтоЧат
+function setAutoChat(){
+    if (need_autochat!=1) return;
+
+    let el_active_user = document.querySelector('.trainer-lesson-list-item.list-group-item.selected');
+    if (!el_active_user) return;
+
+    let active_user_id = el_active_user.dataset.user_id;
+    if (!active_user_id) return;
+
+    if (active_user_id==autochat_user_id) return;
+
+    autochat_user_id = active_user_id;
+
+    let el_btn = el_active_user.querySelector('.chat-button');
+    if (!el_btn) return;
+
+    let event = new Event("click", {bubbles : true, cancelable : true});
+    el_btn.dispatchEvent(event);
 }
 
 function switchMute(){
@@ -2097,6 +2273,19 @@ function switchMute(){
         else 
             elem.checked = false;
         localStorage.setItem('need_mute_student', need_mute);
+        autoChat();
+    }
+}
+
+function switchAutoChat(){
+    let elem = this.querySelector('input[type=checkbox]');
+    if (elem) {
+        need_autochat = (need_autochat==1)?0:1;
+        if (need_autochat==1)
+            elem.checked = true;
+        else 
+            elem.checked = false;
+        localStorage.setItem('need_autochat_student', need_autochat);
     }
 }
 

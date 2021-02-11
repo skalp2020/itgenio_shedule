@@ -47,6 +47,8 @@ function saveOptions() {
     items_to_save["skalp_currency_profile_id"] = currency_profile_id.value;
     var date_pay = document.getElementById("date_pay");
     items_to_save["skalp_date_pay"] = date_pay.value;
+    var mute_sec = document.getElementById("mute_sec");
+    items_to_save["skalp_mute_sec"] = mute_sec.value;
 
     var show_student_city = document.getElementById("show_student_city");
     items_to_save["skalp_show_student_city"] = show_student_city.checked;
@@ -76,7 +78,7 @@ function restoreOptions() {
         'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
         'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay',
         'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time', 
-        'skalp_show_button_back', 'skalp_show_student_skill'], function(items) {
+        'skalp_show_button_back', 'skalp_show_student_skill', 'skalp_mute_sec'], function(items) {
     	let show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
 		var countCheckbox = document.getElementById("show_count");
@@ -126,6 +128,12 @@ function restoreOptions() {
         if (items['skalp_date_pay']!= null) date_pay = items['skalp_date_pay'];
         var datePayInput = document.getElementById("date_pay");
         datePayInput.value = date_pay;
+
+        let mute_sec = '0';
+        if (items['skalp_mute_sec']!= null) mute_sec = items['skalp_mute_sec'];
+        var muteSecInput = document.getElementById("mute_sec");
+        muteSecInput.value = mute_sec;
+
 
         let show_student_city = true;
         if (items['skalp_show_student_city']!= null) show_student_city = items['skalp_show_student_city'];

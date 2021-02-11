@@ -136,6 +136,23 @@
 .trainer-lesson-list-item.list-group-item .name-block{
     position: relative;
 }
+.heading-counts{
+    position: absolute;
+    right: 0;
+    top: 18px;
+    color: #999;
+    font-size: 80%;
+    cursor: pointer;
+}
+.heading-counts-icon::before{
+    content: "▼";
+}
+.heading-counts-icon.active::before{
+    content: "▲";
+}
+.heading-counts:hover, .heading-counts:focus{
+    text-decoration: underline;
+}
 .popup_clipboard{
     display: none;
     position: absolute;
@@ -263,6 +280,31 @@
     font-weight: bold;
     color: #178f2e;
 }
+
+.heading-counts-more{
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 40px;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    z-index: 1;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 80%;
+    text-align: center;
+    max-height: 200px;
+    overflow-y: scroll;
+}
+.heading-counts-more.active{
+    display: block;
+}
+.table-counts-more td{
+    border: 1px solid #ddd;
+    padding: 2px;
+}
+
 .student_timer{
     display: flex;
     align-items: center;
@@ -454,19 +496,19 @@
 .trainer-lesson-actions > div:last-child{
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    max-width: 190px;
+    justify-content: flex-end;
 }
-.label-toggle-mute {
+.label-toggle-mute, .label-toggle-autochat {
     font-size: 80%;
     font-weight: normal;
     display: flex;
     align-items: center;
     margin: 0 6px;
 }
-.label-toggle-mute input[type=checkbox]{
+.label-toggle-mute input[type=checkbox], .label-toggle-autochat input[type=checkbox]{
     margin: 0 4px 0 0;
-}
-.label-toggle-mute span{
-    
 }
 .videochat-settings-btn{
     line-height: 1;
