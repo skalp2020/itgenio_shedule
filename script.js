@@ -1996,7 +1996,14 @@ function writeStudentsDataLesson() {
                         let el_to_add2 = els[i].querySelector('.online-status');
                         if (el_to_add2) {
                             let score1 = 'usual';
-                            switch (students_data[id].rating[skill_id].avg) {
+                            let avg = 4;
+                            try {
+                                avg = students_data[id].rating[skill_id].avg;
+                            }
+                            catch (e) {
+
+                            }
+                            switch (avg) {
                             case 1:
                                 score1 = 'independent';
                                 break;
