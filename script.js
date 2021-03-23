@@ -674,7 +674,7 @@ function addLessonToHtml(lesson, id, className = '', cost = 0) {
                 minute: 'numeric',
             };
             let lesson_string = lesson_time.toLocaleString("ru", options);
-            el.className = "trainer-schedule-lesson-container gena-non-decorated-link loaded";
+            el.className = "group-container gena-non-decorated-link loaded";
             el.classList.add('loaded');
             el.innerHTML = '<div class="list-group-item"><div><span>' + lesson_string + ', <span class="label label-primary">Будет</span></span></div>';
             lesson_container.appendChild(el);
@@ -938,7 +938,7 @@ function drawCost() {
 
 
         span = document.createElement("span");
-        let count1 = document.querySelectorAll('.trainer-schedule-lesson-container').length;
+        let count1 = document.querySelectorAll('.grid-calendar-table .group-container').length;
         let count2 = document.querySelectorAll('.students-list .student:not(.student-skipped)').length;
         span.innerHTML = count1 + " занятий (" +  count2 + ' чел/час) <span class="heading-counts-icon"></span>';
         span.className = "heading-counts";
@@ -1083,7 +1083,7 @@ function prepareMonth() {
         calendar_table.appendChild(grid_calendar);
         for (var m = 0; m < 7; m++) {
             let item_cell = document.createElement("div");
-            item_cell.className = 'grid-calendar-item-cell panel panel-default';
+            item_cell.className = 'grid-calendar-item-cell panel panel-default loaded';
             grid_calendar.appendChild(item_cell);
             let panel_heading = document.createElement("div");
             panel_heading.className = 'panel-heading';

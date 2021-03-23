@@ -554,3 +554,11 @@
     vertical-align: sub;
     margin-right: 4px;
 }
+.gena-drag-and-drop{
+    position: absolute;
+    right: 13px;
+    top: 12px;
+}
+.slot-right .info{
+    padding-right: 20px;
+}
