@@ -101,7 +101,7 @@
     color: #840a0a;
     text-decoration: line-through;
 }
-.trainer-schedule-lesson-container .cost1-label{
+.grid-calendar-item-cell a.group-container .cost1-label{
     position: absolute;
     top: 0;
     right: 0;
@@ -110,7 +110,7 @@
     color: #178f2e;
     opacity: 0.7;
 }
-.trainer-schedule-lesson-container .list-group-item:hover .cost1-label{
+.grid-calendar-item-cell a.group-container:hover .cost1-label{
     opacity: 1;
 }
 .grid-calendar-item-cell .panel-heading{
@@ -390,21 +390,22 @@
 }
 .stat_balanse_history{
     display: flex;
-    flex-direction: row;
-}
-.stat_balanse_history > * {
-    padding: 12px;
+    flex-direction: column;
 }
 .stat_balanse_history .stat1 {
-    flex-basis: 70%;
-}
-.stat_balanse_history .stat2 {
-    flex-basis: 30%;
+    flex-basis: 100%;
 }
 .title_1{
-    font-weight: bold;
-    margin: 20px 8px;
-    font-size: 120%;
+    font-weight: 500;
+}
+.stat_balanse_history .stat1 .panel-heading{
+    cursor: pointer;
+}
+.stat_balanse_history .stat1 .panel-body{
+    display: none;
+}
+.stat_balanse_history .stat1 .panel-body.active{
+    display: block;
 }
 
 

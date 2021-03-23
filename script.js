@@ -81,6 +81,21 @@ const MONTH = {
     10: 'ноябрь',
     11: 'декабрь'
 }
+const MONTH_2 = {
+    0: 'января',
+    1: 'февраля',
+    2: 'марта',
+    3: 'апреля',
+    4: 'мая',
+    5: 'июня',
+    6: 'июля',
+    7: 'августа',
+    8: 'сентября',
+    9: 'октября',
+    10: 'ноября',
+    11: 'декабря'
+}
+
 const DOW = {
     0: "воскресенье",
     1: "понедельник",
@@ -95,11 +110,15 @@ function check_state(){
     //Проверяем нужно ли читать расписание
     let els;
 
-    els = document.querySelectorAll('.trainer-schedule-lesson-container:not(.loaded) .list-group-item');
+    els = document.querySelectorAll('.trainer-schedule .grid-calendar .grid-calendar-item-cell:not(.loaded)');
     if (!is_working && els.length) {
-        els = document.querySelectorAll('.trainer-schedule-lesson-container:not(.loaded)');
+        els = document.querySelectorAll('.trainer-schedule .grid-calendar .grid-calendar-item-cell:not(.loaded)');
         for (let i = 0; i < els.length; i++) {
             els[i].classList.add("loaded");
+        }
+        els = document.querySelectorAll('.schedule-menu .heading-counts,.schedule-menu .heading-counts-more, .schedule-menu .heading-main-cost,.schedule-menu .heading-main-cost-more');
+        for (let i = els.length-1; i>=0; i--) {
+            els[i].remove();
         }
         is_working = true;
         startLoadShedule();
@@ -634,7 +653,7 @@ function addLessonToHtml(lesson, id, className = '', cost = 0) {
     if (lesson.id != getSendId()) return;
     var id_day1 = Math.round(lesson.w / 86400000);
     var el = null;
-    var els = document.querySelectorAll("a.trainer-schedule-lesson-container");
+    var els = document.querySelectorAll(".grid-calendar-item-cell a.group-container");
     for (var el_num = els.length - 1; el_num >= 0; el_num--) {
         if (els[el_num].href.indexOf(id) >= 0 && els[el_num].href.slice(els[el_num].href.lastIndexOf('/') + 1) == id_day1) {
             el = els[el_num];
@@ -1123,7 +1142,7 @@ function startLoadLesson() {
         el.addEventListener('click', studentCopyClipboard);
     }
 
-    var users = document.querySelectorAll(".child-list > div > div");
+    var users = document.querySelectorAll(".child-list .trainer-lesson-list-item");
     for (var i = users.length - 1; i >= 0; i--) {
         let user_id = users[i].querySelector('a.title-name').href.split("/").pop();
         students_list_ids.push(user_id);
@@ -1757,6 +1776,35 @@ function startLoadFavoriteTrainers(){
     });
 }
 
+//Готовим список недель
+function prepareWeeks(){
+    weeks_data = [];
+
+    let dt = new Date();
+    let dt2 = new Date();
+    let dt3 = new Date();
+    let dow = dt.getDay();
+    dt.setDate(dt.getDate() - dow + 1);
+    dt2.setDate(dt2.getDate() - dow + 8);
+    dt3.setDate(dt3.getDate() - dow + 7);
+
+    for (var i = 0; i < 1000; i++) {
+        let t = {
+            dateStart: +dt-86400000,
+            dateEnd: +dt2-86400000,
+            lessons: 0,
+            students: 0,
+            title: dt.getDate() + ' ' + MONTH_2[dt.getMonth()] + " - " + dt3.getDate() + ' ' + MONTH_2[dt3.getMonth()] + ' ' + dt3.getFullYear(),
+            val:0, 
+            count: 0, 
+            val2 : 0
+        }
+        weeks_data.push(t);
+        dt.setDate(dt.getDate()-7);
+        dt2.setDate(dt2.getDate()-7);
+        dt3.setDate(dt3.getDate()-7);
+    }
+}
 
 //Если нужно, читаем балансы
 function checkPaymentsPanel(){
@@ -1769,6 +1817,7 @@ function checkPaymentsPanel(){
         }
         if (balanse_history) {
             setOptionCurrencyProfileRate();
+            prepareWeeks();
             el_parent = document.createElement("div");
             el_parent.className = "payments-employee-payment-history";
             document.querySelector("#home").appendChild(el_parent);
@@ -1804,14 +1853,38 @@ function checkPaymentsPanel(){
                 }
                 else
                     months[date_month].val2 += elem.val;
+
+                for (let nweek = 0; nweek < weeks_data.length; nweek++) {
+                    if (d>=weeks_data[nweek].dateStart && d<weeks_data[nweek].dateEnd) {
+                        if (type==0) {
+                            weeks_data[nweek].val += elem.val;
+                            weeks_data[nweek].count++;
+                        }
+                        else
+                            weeks_data[nweek].val2 += elem.val;
+                    }
+                }
                 
             }
+
+            for (var nweek = weeks_data.length-1; nweek >0; nweek--)
+                if (weeks_data[nweek].count>0 || weeks_data[nweek].val>0 || weeks_data[nweek].val2>0) break;
+            weeks_data.splice(nweek+1);
+
             let html = '';
             let temp = 0;
             html += '<div class="stat_balanse_history">';
 
             html += '<div class="stat1">';
-            html += '<div class="title_1">Статистика по месяцам</div>';
+            html += '<div class="panel panel-default">';
+
+            html += '<div class="panel-heading">';
+            html += '<div class="panel-title">';
+            html += '<div class="title_1">Оплата по месяцам</div>';
+            html += '</div>';
+            html += '</div>';
+
+            html += '<div class="panel-body">';
             html += '<table class="table table-hover">';
             html += '<tr>';
             html += '<th>Месяц</th>';
@@ -1857,9 +1930,81 @@ function checkPaymentsPanel(){
             html += '</table>';
             html += '</div>';
 
+            html += '</div>';
+            html += '</div>';
 
-            html += '<div class="stat2">';
-            html += '<div class="title_1">Статистика по дням недели</div>';
+
+
+            html += '<div class="stat1">';
+            html += '<div class="panel panel-default">';
+
+            html += '<div class="panel-heading">';
+            html += '<div class="panel-title">';
+            html += '<div class="title_1">Оплата по неделям</div>';
+            html += '</div>';
+            html += '</div>';
+
+            html += '<div class="panel-body">';
+            html += '<table class="table table-hover">';
+            html += '<tr>';
+            html += '<th>Неделя</th>';
+            html += '<th>Занятий</th>';
+            html += '<th>В среднем за занятие</th>';
+            html += '<th>За проведение занятий</th>';
+            html += '<th>Доп. начисления</th>';
+            html += '<th>Итого</th>';
+            html += '</tr>';
+            for (let elem in weeks_data) {
+                html += '<tr>';
+                html += '<td>' + weeks_data[elem].title + '</td>';
+                html += '<td>' + weeks_data[elem].count + '</td>';
+                temp = (weeks_data[elem].count>0)? weeks_data[elem].val / weeks_data[elem].count : 0;
+                html += '<td>' + temp.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(temp*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                html += '<td>' + weeks_data[elem].val.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(weeks_data[elem].val*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                html += '<td>' + weeks_data[elem].val2.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(weeks_data[elem].val2*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                temp = weeks_data[elem].val + weeks_data[elem].val2;
+                html += '<td>' + temp.toFixed(2) + '$';
+                if (option_currency_profile_mark!='$') {
+                    html += '<span class="info_additional"> / ' +(temp*option_currency_profile_rate).toFixed(2) + option_currency_profile_mark + '</span>';
+                }
+                html += '</td>'
+
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            html += '</div>';
+
+            html += '</div>';
+            html += '</div>';
+
+
+
+            html += '<div class="stat1">';
+            html += '<div class="panel panel-default">';
+
+            html += '<div class="panel-heading">';
+            html += '<div class="panel-title">';
+            html += '<div class="title_1">Оплата по дням недели</div>';
+            html += '</div>';
+            html += '</div>';
+
+            html += '<div class="panel-body">';
             html += '<table class="table table-hover">';
             html += '<tr>';
             html += '<th>День недели</th>';
@@ -1891,9 +2036,21 @@ function checkPaymentsPanel(){
             html += '</div>';
 
             html += '</div>';
+            html += '</div>';
+
+            html += '</div>';
             el_parent.innerHTML = html;
+
+            var i_to_click = document.querySelectorAll(".stat1 .panel-heading");
+            for (let elem of i_to_click) {
+                elem.addEventListener('click', function(){
+                    this.nextSibling.classList.toggle('active');
+                });
+            }
         }
     }
+
+
 
     is_working = false;
 }
