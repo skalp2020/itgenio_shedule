@@ -44,6 +44,8 @@
 .trainer-shedule-students-list .students-list .student{
     display: flex;
     padding: 2px 14px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 .trainer-shedule-students-list .students-list .student:hover{
     background-color: #f1f1f1;
@@ -52,7 +54,26 @@
     flex-grow: 1;
 }
 .trainer-shedule-students-list .students-list a{
-    color: #333;
+    color: #111;
+}
+.trainer-shedule-students-list .students-list .student-oneTime{
+    color: #fff;
+    background: #35bbdc;
+    padding: 2px 3px;
+    line-height: 1em;
+    font-size: 70%;
+    border-radius: 2px;
+}
+.trainer-shedule-students-list .students-list .student-workingOff{
+    color: #fff;
+    background: #d9534f;
+    padding: 2px 3px;
+    line-height: 1em;
+    font-size: 70%;
+    border-radius: 2px;
+}
+.label-onetime {
+    background-color: #35bbdc;
 }
 .trainer-shedule-students-list .students-list .student-name{
 	display: inline-block;
@@ -558,6 +579,7 @@
     position: absolute;
     right: 13px;
     top: 12px;
+    margin-right: 4px!important;
 }
 .slot-right .info{
     padding-right: 20px;

@@ -49,6 +49,7 @@ var balanse_history = null;
 var counter_global = Math.floor(Math.random()*800)+101;
 
 var lesson_id = '';
+var lesson_info = null;
 var is_working = false;
 var is_working_tick = 0;
 
@@ -346,7 +347,13 @@ function startLoadStudentsInfo() {
                 //Запрашиваем данные студентов
                 sendRequestStudents2();
             } else if (request.msg == 'ready' && operation == 'students_data') {
+                operation = 'students_list';
+                sendRequestLessons();
+                //Отображаем данные про студентов
+                // writeStudentsDataLesson();
+            } else if (request.msg == 'added' && operation == 'students_list') {
                 operation = '';
+                getStudentsInfoOnLesson(request.fields);
                 //Отображаем данные про студентов
                 writeStudentsDataLesson();
             } else if (request.msg == 'connected') {
@@ -362,8 +369,10 @@ function startLoadStudentsInfo() {
                     if (request.fields.payBase) pay_base = request.fields.payBase;
                     if (request.fields.maxSlots) max_slots = request.fields.maxSlots;
                     tz = moment().tz(request.fields.tz)._offset / 60;
+                    // operation = 'students_list';
+                    // sendRequestLessons();
                     operation = 'students_data';
-                    //Запрашиваем названия предметов
+                    // Запрашиваем названия предметов
                     sendRequestSkills();
                 } 
             } 
@@ -410,7 +419,7 @@ function loginResume() {
 }
 
 function sendRequestLessons() {
-    socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + session_id + '\\",\\"name\\":\\"schedule.view\\",\\"params\\":[\\"' + lesson_id +  '\\"]}"]');
+    socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + getCounter() + '\\",\\"name\\":\\"schedule.view\\",\\"params\\":[\\"' + lesson_id +  '\\"]}"]');
 }
 
 function sendSheduleRequest() {
@@ -525,6 +534,7 @@ function addLessonToList(lessons, id) {
             }
         }
     }
+
 }
 
 function addLessonsToList(lessons) {
@@ -860,8 +870,23 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
         //Ученик
         text += '<span class="student-name"><a href="/profile/' + student.id + '" class="title-name">' + student.lastName + ' ' + student.firstName + '</a><a onclick="return false" class="popup_clipboard" title="Скопировать в буфер обмена">&#9997;</a></span>';
 
+        //Метки ученика
+        if (lesson.c[i].kind=='oneTime') {
+            text += '<span class="student-oneTime">разово</span>'
+        } else
+        if (lesson.c[i].kind=='workingOff') {
+            text += '<span class="student-workingOff">отработка</span>'
+        }
+
         let li = document.createElement("li");
         li.className = 'student student-' + lesson.c[i].s;
+        if (lesson.c[i].kind=='oneTime') {
+            li.title = "Разово";
+        } else
+        if (lesson.c[i].kind=='workingOff') {
+            li.title = "Отработка";
+        }
+        
         li.innerHTML = text;
         ul.appendChild(li);
     }
@@ -1319,67 +1344,7 @@ function timerStudentTimer(){
     }
 }
 
-function addEmojiButton() {
-    var emojyContainer = document.querySelector(".form-inline.chat-message");
-    var emojyLink = document.querySelector(".form-inline.chat-message .MuiIconButton-emoji");
-    if (emojyContainer && !emojyLink) {
-        el = document.createElement("button");
-        el.className = "MuiButtonBase-root MuiIconButton-root MuiIconButton-emoji";
-        el.type = 'button';
-        el.innerHTML = '<span class="MuiIconButton-label">&#9786;</span><span class="MuiTouchRipple-root"></span>';
-        emojyContainer.insertBefore(el, emojyContainer.children[1]);
-        el.addEventListener('click', emojiShowWindow);
-        var emojyPopupContainer = document.querySelector(".popup-emoji");
-        if (!emojyPopupContainer) {
-            emojyPopupContainer = document.createElement("div");
-            emojyPopupContainer.className = "popup-emoji";
-            //var text = '';
-            var emojiCodes = [];
-            for (var i = 128512; i <= 128580; i++) {
-                emojiCodes.push("&#" + i + ";");
-            }
-            for (var i = 129296; i <= 129327; i++) {
-                emojiCodes.push("&#" + i + ";");
-            }
-            emojiCodes.push("&#129488;");
-            for (var i = 0; i < emojiCodes.length; i++) {
-                let emoji = document.createElement("span");
-                emoji.className = 'emoji-button';
-                emoji.addEventListener('click', emojiInsertToChat);
-                emoji.innerHTML = emojiCodes[i];
-                emojyPopupContainer.appendChild(emoji);
-            }
-            //emojyPopupContainer.innerHTML = text;
-            emojyContainer.parentElement.insertBefore(emojyPopupContainer, emojyContainer);
-        }
-    }
-}
 
-function emojiInsertToChat() {
-    var emojyContainer = document.querySelector(".MuiInputBase-input.MuiInput-input.MuiInputBase-inputMultiline.MuiInput-inputMultiline.MuiInputBase-inputHiddenLabel");
-    emojyContainer.focus();
-    document.execCommand("insertHTML", !1, this.innerHTML);
-}
-var simulateKeyPress = function(type, keyCodeArg, element) {
-    var evt = document.createEvent('HTMLEvents');
-    evt.initEvent(type, true, false);
-    evt.keyCode = keyCodeArg;
-    evt.which = keyCodeArg;
-    element.dispatchEvent(evt);
-}
-
-function emojiShowWindow() {
-    var emojyContainer = document.querySelector(".popup-emoji");
-    if (emojyContainer) {
-        if (emojyContainer.classList.contains('active')) {
-            emojyContainer.style.display = 'none';
-            emojyContainer.className = 'popup-emoji';
-        } else {
-            emojyContainer.style.display = 'block';
-            emojyContainer.className = 'popup-emoji active';
-        }
-    }
-}
 //ДЛЯ АДМИНОВ
 function loadSheduleAdmin() {
     var els = document.querySelectorAll(".group-item > a.link:not(.worked)");
@@ -2102,6 +2067,24 @@ function setColorScheme() {
     }
 }
 
+function getStudentsInfoOnLesson(fields) {
+    let lesson_id = location.href.split("/")[4];
+    let lesson_id_date = location.href.split("/")[5] * 86400000;
+
+    for (var i = 0; i < fields.finishedSlots.length; i++) {
+        if (fields.finishedSlots[i].w == lesson_id_date) {
+            lesson_info = fields.finishedSlots[i];
+            break;
+        }
+    }
+    for (var i = 0; i < fields.slots.length; i++) {
+        if (fields.slots[i].w == lesson_id_date) {
+            lesson_info = fields.slots[i];
+            break;
+        }
+    }
+}
+
 function writeStudentsDataLesson() {
     els = document.querySelectorAll('.lesson-body .trainer-lesson-list-item');
     for (let i = 0; i < els.length; i++) {
@@ -2193,7 +2176,24 @@ function writeStudentsDataLesson() {
                 }
             }
 
-            
+            el_to_add = els[i].querySelector('.slot-left');
+            if (el_to_add) {
+                let find = false;
+                let student_status = '';
+                for (let j = 0; j < lesson_info.c.length; j++) {
+                    if (lesson_info.c[j].id == id) {
+                        find = true;
+                        student_status = lesson_info.c[j].kind;
+                        break;
+                    }
+                }
+                if (student_status == 'oneTime') {
+                    el = document.createElement('span');
+                    el.className = 'label label-onetime';
+                    el.innerHTML = 'Разово'
+                    el_to_add.appendChild(el);
+                }
+            }
         }
     }
     updateStudentsSkypesInfo();
