@@ -43,9 +43,9 @@
 }
 .trainer-shedule-students-list .students-list .student{
     display: flex;
-    padding: 2px 14px;
-    align-items: center;
-    flex-wrap: wrap;
+    padding: 2px 4px 2px 14px;
+    align-items: flex-start;
+    flex-wrap: nowrap;
 }
 .trainer-shedule-students-list .students-list .student:hover{
     background-color: #f1f1f1;
@@ -63,6 +63,7 @@
     line-height: 1em;
     font-size: 70%;
     border-radius: 2px;
+    margin-top: 3px;
 }
 .trainer-shedule-students-list .students-list .student-workingOff{
     color: #fff;
@@ -71,12 +72,13 @@
     line-height: 1em;
     font-size: 70%;
     border-radius: 2px;
+    margin-top: 3px;
 }
 .label-onetime {
     background-color: #35bbdc;
 }
 .trainer-shedule-students-list .students-list .student-name{
-	display: inline-block;
+	display: inline;
 	margin: 0 4px;
 	opacity: 0.8;
     position: relative;
