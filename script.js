@@ -2180,6 +2180,7 @@ function writeStudentsDataLesson() {
             if (el_to_add) {
                 let find = false;
                 let student_status = '';
+                if (lesson_info && lesson_info.c)
                 for (let j = 0; j < lesson_info.c.length; j++) {
                     if (lesson_info.c[j].id == id) {
                         find = true;
