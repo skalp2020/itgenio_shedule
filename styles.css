@@ -586,3 +586,11 @@
 .slot-right .info{
     padding-right: 20px;
 }
+.videochat-remote-window:fullscreen .child-name {
+    top: 1px;
+    transition: 0.3s;
+    z-index: 1;
+}
+.videochat-remote-window:fullscreen .child-name:hover {
+    top: -4%;
+}
