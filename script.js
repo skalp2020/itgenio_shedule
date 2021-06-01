@@ -484,6 +484,7 @@ function sendRequestStudents2() {
 
 function addLessonToList(lessons, id) {
     if (lessons_list_temp_ids.indexOf(id)==-1) return;
+    // console.log(lessons);
 
     for (let i = 0; i <= lessons.finishedSlots.length; i++) {
         if (lessons.finishedSlots[i]) {
@@ -871,11 +872,18 @@ function addLessonToHTML2(div_to_add, div_title, lesson, div, cost) {
         text += '<span class="student-name"><a href="/profile/' + student.id + '" class="title-name">' + student.lastName + ' ' + student.firstName + '</a><a onclick="return false" class="popup_clipboard" title="Скопировать в буфер обмена">&#9997;</a></span>';
 
         //Метки ученика
-        if (lesson.c[i].kind=='oneTime') {
-            text += '<span class="student-oneTime">разово</span>'
-        } else
-        if (lesson.c[i].kind=='workingOff') {
-            text += '<span class="student-workingOff">отработка</span>'
+        // console.log(lesson.c[i]);
+        if (lesson.c[i].kind == 'oneTime') {
+            text += '<span class="student-schedule-label student-oneTime">разово</span>'
+        } 
+        if (lesson.c[i].kind == 'workingOff') {
+            text += '<span class="student-schedule-label student-workingOff">отработка</span>'
+        }
+        if (lesson.c[i].kind == 'trial') {
+            text += '<span class="student-schedule-label student-trial">пробное</span>'
+        }
+        if (lesson.c[i].newSubj == true) {
+            text += '<span class="student-schedule-label student-newsubj">новое</span>'
         }
 
         let li = document.createElement("li");
