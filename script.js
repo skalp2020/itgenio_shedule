@@ -2675,7 +2675,7 @@ function initSoundsSettings() {
         text += `<div class="volume">Громкость: <input type="range" class="sound-settings-vol" min="0" max="100" value="${sound_vol}" data-vid="chat_vol"></div>`;
         text += '<div class="sound-settings-variants">';
         selected = (sound_now=='')?"checked":"";
-        text += `<div><label><input name="sound-settings-selected" class="sound-settings-selected" type="radio" data-vid="chat" data-value="" ${selected}> Default</label></div>`;
+        text += `<div><label><input name="sound-settings-selected" class="sound-settings-selected" type="radio" data-vid="chat" data-value="" ${selected}> Def.</label></div>`;
         for (let sound of Object.keys(sounds_data).sort()) {
             selected = (sound_now==sounds_data[sound])?"checked":"";
             text += `<div><label><input name="sound-settings-selected" class="sound-settings-selected" type="radio" data-vid="chat" data-value="${sounds_data[sound]}" ${selected}> ${sound}</label></div>`;
@@ -2690,7 +2690,7 @@ function initSoundsSettings() {
         text += `<div class="volume">Громкость: <input type="range" class="sound-settings-vol" min="0" max="100" value="${sound_vol}" data-vid="call_vol"></div>`;
         text += '<div class="sound-settings-variants">';
         selected = (sound_now=='')?"checked":"";
-        text += `<div><label><input name="sound-settings-selected-call" class="sound-settings-selected" type="radio" data-vid="call" data-value="" ${selected}> Default</label></div>`;
+        text += `<div><label><input name="sound-settings-selected-call" class="sound-settings-selected" type="radio" data-vid="call" data-value="" ${selected}> Def.</label></div>`;
         for (let sound of Object.keys(sounds_data).sort()) {
             selected = (sound_now==sounds_data[sound])?"checked":"";
             text += `<div><label><input name="sound-settings-selected-call" class="sound-settings-selected" type="radio" data-vid="call" data-value="${sounds_data[sound]}" ${selected}> ${sound}</label></div>`;
@@ -2705,7 +2705,7 @@ function initSoundsSettings() {
         text += `<div class="volume">Громкость: <input type="range" class="sound-settings-vol" min="0" max="100" value="${sound_vol}" data-vid="ready_vol"></div>`;
         text += '<div class="sound-settings-variants">';
         selected = (sound_now=='')?"checked":"";
-        text += `<div><label><input name="sound-settings-selected-ready" class="sound-settings-selected" type="radio" data-vid="ready" data-value="" ${selected}> Default</label></div>`;
+        text += `<div><label><input name="sound-settings-selected-ready" class="sound-settings-selected" type="radio" data-vid="ready" data-value="" ${selected}> Def.</label></div>`;
         for (let sound of Object.keys(sounds_data).sort()) {
             selected = (sound_now==sounds_data[sound])?"checked":"";
             text += `<div><label><input name="sound-settings-selected-ready" class="sound-settings-selected" type="radio" data-vid="ready" data-value="${sounds_data[sound]}" ${selected}> ${sound}</label></div>`;
