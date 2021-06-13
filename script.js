@@ -1,3 +1,10 @@
+// Звук чата
+// #new-message-sound работает! https://itgenio.div42.ru/001.mp3
+// call.wav
+// new-message.wav
+// Звук когда зовут
+// window.attentionPlayer._audioItem.src = "https://itgenio.div42.ru/001.mp3" работает!
+
 var url = location.href;
 var hostname = location.hostname;
 
@@ -67,6 +74,17 @@ if (need_autochat===undefined) need_autochat=0;
 var autochat_user_id = '';
 
 var weeks_data = [];
+
+var sounds_data = {};
+var sounds_settings = {
+    'chat': '',
+    'call': '',
+    'ready': '',
+    'chat_vol': 100,
+    'call_vol': 90,
+    'ready_vol': 90
+};
+var sound_setted = false;
 
 const MONTH = {
     0: 'январь',
@@ -174,10 +192,14 @@ function check_state(){
     setBackButton();
     setAutoChat();
 
+    //Есть ли кнопка регулирования звуков
+    if (!is_working) {
+        checkSoundsSettings();
+        // initSoundsSettings();
+    }
+
     setTimeout(check_state, 200);
 }
-check_state();
-
 
 function getCounter(){
     return ++counter_global;
@@ -419,6 +441,7 @@ function loginResume() {
 }
 
 function sendRequestLessons() {
+    // console.log(lesson_id);
     socket1.send('["{\\"msg\\":\\"sub\\",\\"id\\":\\"' + getCounter() + '\\",\\"name\\":\\"schedule.view\\",\\"params\\":[\\"' + lesson_id +  '\\"]}"]');
 }
 
@@ -2078,6 +2101,11 @@ function setColorScheme() {
 function getStudentsInfoOnLesson(fields) {
     let lesson_id = location.href.split("/")[4];
     let lesson_id_date = location.href.split("/")[5] * 86400000;
+    // console.log("lesson_id_date", lesson_id_date);
+    // console.log("finishedSlots");
+    // console.log(fields.finishedSlots);
+    // console.log("slots");
+    // console.log(fields.slots);
 
     for (var i = 0; i < fields.finishedSlots.length; i++) {
         if (fields.finishedSlots[i].w == lesson_id_date) {
@@ -2094,6 +2122,7 @@ function getStudentsInfoOnLesson(fields) {
 }
 
 function writeStudentsDataLesson() {
+    // console.log(students_data);
     els = document.querySelectorAll('.lesson-body .trainer-lesson-list-item');
     for (let i = 0; i < els.length; i++) {
         let id = els[i].dataset.user_id;
@@ -2196,6 +2225,7 @@ function writeStudentsDataLesson() {
                         break;
                     }
                 }
+                // console.log(lesson_info);
                 if (student_status == 'oneTime') {
                     el = document.createElement('span');
                     el.className = 'label label-onetime';
@@ -2509,3 +2539,201 @@ function setBackButton() {
         history.back();
     });
 }
+
+// ПРоверяем, есть ли иконка настроек звуков, если нет, добавляем
+function checkSoundsSettings() {
+    let el = document.querySelector('.sound-settings-icon');
+    if (el) return;
+
+    let el_to_add = document.querySelector('.top-bar-container .right');
+    if (el_to_add) {
+        let e = document.createElement("div");
+        e.className = 'sound-settings-icon';
+        e.innerHTML = '<img src="https://itgenio.div42.ru/icons/sound-settings.png" alt="ChangeSoundsSettings">';
+        el_to_add.prepend(e);
+
+    }
+
+    let e = document.querySelector(".sound-settings-icon img");
+    if (e) {
+        e.addEventListener("click", function() {
+            let q = document.querySelector('.sound-settings-window');
+            if (q) q.classList.toggle("active");
+        });
+    }
+
+    // Читаем список звуков
+    getJSON('https://itgenio.div42.ru/sounds.json', '',  function(err, data) {
+        if (err != null) {
+            console.error(err);
+        } else {
+            sounds_data = data;
+            initSoundsSettings();
+        }
+    });
+}
+
+// Выбор звука
+function setSound() {
+    let vid = '';
+    if (this.dataset) {
+        vid = this.dataset.vid;
+        let value = this.dataset.value;
+        if (value == undefined) {
+            value = this.value;
+        }
+        if (vid) {
+            sounds_settings[vid] = value;
+            localStorage.setItem('st_sound_settings', JSON.stringify(sounds_settings));
+        }
+    }
+    let elem = document.querySelector("#new-message-sound");
+    if (elem) {
+        let src = sounds_settings['chat_default'];
+        let vol = sounds_settings['chat_vol_default'];
+        if (sounds_settings['chat']!='') {
+            src = skills_resource + sounds_settings['chat'];
+        }
+        if (sounds_settings['chat_vol'] !='') {
+            vol = sounds_settings['chat_vol'];
+        }
+        elem.src = src;
+        elem.volume = vol / 100;
+        if (vid == 'chat' || vid == 'chat_vol') {
+            elem.play();
+        }
+    }
+
+    let src = sounds_settings['call_default'];
+    let vol = sounds_settings['call_vol_default'];
+    if (sounds_settings['call']!='') {
+        src = skills_resource + sounds_settings['call'];
+    }
+    if (sounds_settings['call_vol'] !='') {
+        vol = sounds_settings['call_vol'];
+    }
+    var actualCode = `window.attentionPlayer._audioItem.src = "${src}";`;
+    actualCode += ` window.attentionPlayer._audioItem.volume = "${vol / 100}";`;
+    if (vid == 'call' || vid == 'call_vol') {
+        actualCode += ` window.attentionPlayer.play();`;
+    }
+    var script = document.createElement('script');
+    script.textContent = actualCode;
+    (document.head||document.documentElement).appendChild(script);
+    script.remove();
+
+
+    src = sounds_settings['ready_default'];
+    vol = sounds_settings['ready_vol_default'];
+    if (sounds_settings['ready']!='') {
+        src = skills_resource + sounds_settings['ready'];
+    }
+    if (sounds_settings['ready_vol'] !='') {
+        vol = sounds_settings['ready_vol'];
+    }
+    actualCode = `window.readyToCallPlayer._audioItem.src = "${src}";`;
+    actualCode += ` window.readyToCallPlayer._audioItem.volume = "${vol / 100}";`;
+    if (vid == 'ready' || vid == 'ready_vol') {
+        actualCode += ` window.readyToCallPlayer.play();`;
+    }
+    var script = document.createElement('script');
+    script.textContent = actualCode;
+    (document.head||document.documentElement).appendChild(script);
+    script.remove();
+
+}
+
+// Создаем окно редактирования звуков
+function initSoundsSettings() {
+    let el = document.querySelector('.sound-settings-window');
+    if (el) return;
+
+    temp = JSON.parse(localStorage.getItem('st_sound_settings'));
+    if (temp) sounds_settings = temp;
+    let elem = document.querySelector("#new-message-sound");
+    if (elem) {
+        sounds_settings['chat_default'] = elem.src;
+        sounds_settings['chat_vol_default'] = Math.round(elem.volume * 100);
+        // elem.play();
+    } else {
+        return;
+    }
+    sounds_settings['call_default'] = "https://portal.itgen.io/media/attention.wav";
+    sounds_settings['ready_default'] = "https://portal.itgen.io/media/readyToCall.wav";
+    
+
+    let el_to_add = document.querySelector('.top-bar-container .right .sound-settings-icon');
+    if (el_to_add) {
+        el = document.createElement("div");
+        el.className = 'sound-settings-window';
+        let text = '';
+
+        let sound_now = sounds_settings['chat'];
+        let sound_vol = (sounds_settings['chat_vol'] != undefined)?sounds_settings['chat_vol']:100;
+        let selected = '';
+        text += '<div class="title">Звук нового сообщения в чате</div>';
+        text += `<div class="volume">Громкость: <input type="range" class="sound-settings-vol" min="0" max="100" value="${sound_vol}" data-vid="chat_vol"></div>`;
+        text += '<div class="sound-settings-variants">';
+        selected = (sound_now=='')?"checked":"";
+        text += `<div><label><input name="sound-settings-selected" class="sound-settings-selected" type="radio" data-vid="chat" data-value="" ${selected}> Default</label></div>`;
+        for (let sound of Object.keys(sounds_data).sort()) {
+            selected = (sound_now==sounds_data[sound])?"checked":"";
+            text += `<div><label><input name="sound-settings-selected" class="sound-settings-selected" type="radio" data-vid="chat" data-value="${sounds_data[sound]}" ${selected}> ${sound}</label></div>`;
+        }
+        text += "</div>";
+
+        text += "<hr>";
+
+        sound_now = sounds_settings['call'];
+        sound_vol = (sounds_settings['call_vol'] != undefined)?sounds_settings['call_vol']:90;
+        text += '<div class="title">Звук, когда ученику нужна помощь</div>';
+        text += `<div class="volume">Громкость: <input type="range" class="sound-settings-vol" min="0" max="100" value="${sound_vol}" data-vid="call_vol"></div>`;
+        text += '<div class="sound-settings-variants">';
+        selected = (sound_now=='')?"checked":"";
+        text += `<div><label><input name="sound-settings-selected-call" class="sound-settings-selected" type="radio" data-vid="call" data-value="" ${selected}> Default</label></div>`;
+        for (let sound of Object.keys(sounds_data).sort()) {
+            selected = (sound_now==sounds_data[sound])?"checked":"";
+            text += `<div><label><input name="sound-settings-selected-call" class="sound-settings-selected" type="radio" data-vid="call" data-value="${sounds_data[sound]}" ${selected}> ${sound}</label></div>`;
+        }
+        text += "</div>";
+
+        text += "<hr>";
+
+        sound_now = (sounds_settings['ready'] != undefined)?sounds_settings['ready']:"";
+        sound_vol = (sounds_settings['ready_vol'] != undefined)?sounds_settings['ready_vol']:90;
+        text += '<div class="title">Звук готовности ученика к уроку</div>';
+        text += `<div class="volume">Громкость: <input type="range" class="sound-settings-vol" min="0" max="100" value="${sound_vol}" data-vid="ready_vol"></div>`;
+        text += '<div class="sound-settings-variants">';
+        selected = (sound_now=='')?"checked":"";
+        text += `<div><label><input name="sound-settings-selected-ready" class="sound-settings-selected" type="radio" data-vid="ready" data-value="" ${selected}> Default</label></div>`;
+        for (let sound of Object.keys(sounds_data).sort()) {
+            selected = (sound_now==sounds_data[sound])?"checked":"";
+            text += `<div><label><input name="sound-settings-selected-ready" class="sound-settings-selected" type="radio" data-vid="ready" data-value="${sounds_data[sound]}" ${selected}> ${sound}</label></div>`;
+        }
+        text += "</div>";
+
+
+        el.innerHTML = text;
+        // e.addEventListener("click", setStudentSkype);
+        el_to_add.prepend(el);
+
+
+        let els = document.querySelectorAll('.sound-settings-selected');
+        for (let e of els) {
+            e.addEventListener("click", setSound);
+        }
+        els = document.querySelectorAll('.sound-settings-vol');
+        for (let e of els) {
+            e.addEventListener("change", setSound);
+        }
+    }
+
+    setSound();    
+}
+
+
+
+
+
+// Запускаем 
+check_state();

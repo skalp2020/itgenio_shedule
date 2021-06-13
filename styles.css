@@ -601,3 +601,58 @@
 .videochat-remote-window:fullscreen .child-name:hover {
     top: -4%;
 }
+.sound-settings-icon{
+    position: relative;
+}
+.sound-settings-icon img{
+    cursor: pointer;
+    filter: grayscale(100%);
+    opacity: 0.8;
+}
+.sound-settings-icon img:hover, .sound-settings-icon img:focus{
+    filter: none;
+    opacity: 1;
+}
+.sound-settings-window{
+    position: absolute;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    width: 400px;
+    right: 0;
+    top: 100%;
+    max-height: 400px;
+    overflow-y: scroll;
+    display: none;
+}
+.sound-settings-window.active{
+    display: block;
+}
+.sound-settings-window audio {
+    width: 105px;
+    height: 25px;
+}
+.sound-settings-window .sound-settings-variants{
+    display: flex;
+    flex-wrap: wrap;
+}
+.sound-settings-window .sound-settings-variants > div{
+    flex: 0 0 20%;
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+}
+.sound-settings-window .sound-settings-variants label{
+    display: inline-flex;
+    align-items: center;
+    margin: 0 6px 0 0;
+    font-weight: normal;
+}
+.sound-settings-window .sound-settings-variants input[type="radio"] {
+    margin: 0 6px 0 0;
+}
+.sound-settings-window .title{
+    text-align: center;
+    font-weight: bold;
+    margin: 6px 0;
+}
