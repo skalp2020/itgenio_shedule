@@ -469,6 +469,15 @@
     color: #bbb;
     margin: 0 5px;
 }
+.student_lasttime{
+    display: block;
+    font-size: 75%;
+    color: #bbb;
+    margin: 0;
+}
+.student_lasttime.disabled{
+    display: none;
+}
 .student_skype{
     width: 16px;
     height: 16px;
@@ -597,9 +606,10 @@
     top: 1px;
     transition: 0.3s;
     z-index: 1;
+    opacity: 1;
 }
 .videochat-remote-window:fullscreen .child-name:hover {
-    top: -4%;
+    opacity: 0;
 }
 .sound-settings-icon{
     position: relative;
@@ -655,4 +665,12 @@
     text-align: center;
     font-weight: bold;
     margin: 6px 0;
+}
+
+.top-panel-alert{
+    display: flex;
+    align-items: center;
+}
+.top-panel-alert .alert{
+    margin: 0;
 }

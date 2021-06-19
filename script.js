@@ -46,6 +46,7 @@ var option_date_pay = 5;
 var option_mute_sec = 0;
 var option_show_student_city = true;
 var option_show_student_time = true;
+var option_show_student_lasttime = false;
 var option_show_button_back = false;
 var option_show_student_skill = false;
 var skills_data = { "default": "images/default.png" };
@@ -196,6 +197,17 @@ function check_state(){
     if (!is_working) {
         checkSoundsSettings();
         // initSoundsSettings();
+    }
+
+    // Проверяем, не изменился ли статус ученика онлан/оффлайн
+    // if (!is_working) {
+    //     checkStudentOnline();
+    //     // initSoundsSettings();
+    // }
+
+    // Проверяем, нужно ли перемещать уведомления
+    if (!is_working) {
+        checkAlertMove();
     }
 
     setTimeout(check_state, 200);
@@ -406,7 +418,7 @@ function startLoadStudentsInfo() {
 chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
     'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
     'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay', 'skalp_color_scheme', 
-    'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_button_back',
+    'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_student_lasttime', 'skalp_show_button_back',
     'skalp_show_student_skill', 'skalp_mute_sec'], function(items) {
     if (items['skalp_show_count'] != null) option_show_count = items['skalp_show_count'];
     if (items['skalp_show_language'] != null) option_show_language = items['skalp_show_language'];
@@ -431,6 +443,7 @@ chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_
     }
     if (items['skalp_show_student_city'] != null) option_show_student_city = items['skalp_show_student_city'];
     if (items['skalp_show_student_time'] != null) option_show_student_time = items['skalp_show_student_time'];
+    if (items['skalp_show_student_lasttime'] != null) option_show_student_lasttime = items['skalp_show_student_lasttime'];
     if (items['skalp_show_button_back'] != null) option_show_button_back = items['skalp_show_button_back'];
     if (items['skalp_show_student_skill'] != null) option_show_student_skill = items['skalp_show_student_skill'];
 
@@ -2122,6 +2135,7 @@ function getStudentsInfoOnLesson(fields) {
 }
 
 function writeStudentsDataLesson() {
+    let end = Date.now();
     // console.log(students_data);
     els = document.querySelectorAll('.lesson-body .trainer-lesson-list-item');
     for (let i = 0; i < els.length; i++) {
@@ -2203,6 +2217,7 @@ function writeStudentsDataLesson() {
                 }
             }
 
+            
             if (option_show_student_time) {
                 el = els[i].querySelector('.about-child > .student_time');
                 if (!el && el_to_add) {
@@ -2212,6 +2227,21 @@ function writeStudentsDataLesson() {
                     el_to_add.appendChild(el); 
                 }
             }
+
+            // if (option_show_student_lasttime) {
+            //     el = els[i].querySelector('.about-child > .student_lasttime');
+            //     if (!el && el_to_add) {
+            //         // console.log(students_data[id]);
+            //         moment.locale('ru');
+            //         let dat = new Date(students_data[id].lastSeen['$date'])
+            //         // console.log(moment(dat).fromNow());
+            //         // console.log(moment(dat).format("D MMMM в HH:mm"));
+            //         el = document.createElement("span");
+            //         el.className = 'student_lasttime';
+            //         el.innerHTML = 'В сети ' + moment(dat).format("D MMMM в HH:mm") + " (" + moment(dat).fromNow() + ")";
+            //         el_to_add.appendChild(el); 
+            //     }
+            // }
 
             el_to_add = els[i].querySelector('.slot-left');
             if (el_to_add) {
@@ -2732,7 +2762,35 @@ function initSoundsSettings() {
 }
 
 
+// function checkStudentOnline(){
+//     els = document.querySelectorAll('.user-online-status');
+//     for (let e of els) {
+//         // console.log(e.classList);
+//         // console.log(e.classList.contains('online'));
+//         if (e.classList.contains('online') && !e.classList.contains('online-was')) {
+//             e.classList.add('online-was');
+//             let pe = e.closest(".slot-left");
+//             if (pe) {
+//                 let e2 = e.closest(".slot-left").querySelector(".student_lasttime");
+//                 // console.log(e2);
+//                 if (e2) {
+//                     e2.classList.add("disabled");
+//                 }
+//             }
+//         }
+//     }
+// }
 
+
+function checkAlertMove() {
+    let parent = document.querySelector('.top-bar .left');
+    let els = document.querySelectorAll('.alert-warning');
+    for (let el of els) {
+        if (el.parentNode.parentNode.classList.contains('left')) continue;
+        parent.append(el.parentNode);
+        el.parentNode.classList.add("top-panel-alert");
+    }
+}
 
 
 // Запускаем 

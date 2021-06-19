@@ -54,6 +54,8 @@ function saveOptions() {
     items_to_save["skalp_show_student_city"] = show_student_city.checked;
     var show_student_time = document.getElementById("show_student_time");
     items_to_save["skalp_show_student_time"] = show_student_time.checked;
+    // var show_student_lasttime = document.getElementById("show_student_lasttime");
+    // items_to_save["skalp_show_student_lasttime"] = show_student_lasttime.checked;
     var show_button_back = document.getElementById("show_button_back");
     items_to_save["skalp_show_button_back"] = show_button_back.checked;
     var show_student_skill = document.getElementById("show_student_skill");
@@ -77,7 +79,7 @@ function restoreOptions() {
     chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
         'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
         'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay',
-        'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time', 
+        'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_student_lasttime', 
         'skalp_show_button_back', 'skalp_show_student_skill', 'skalp_mute_sec'], function(items) {
     	let show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
@@ -144,6 +146,11 @@ function restoreOptions() {
         if (items['skalp_show_student_time']!= null) show_student_time = items['skalp_show_student_time'];
         var studentTimeCheckbox = document.getElementById("show_student_time");
         studentTimeCheckbox.checked = show_student_time;
+
+        // let show_student_lasttime = false;
+        // if (items['skalp_show_student_lasttime']!= null) show_student_lasttime = items['skalp_show_student_lasttime'];
+        // var studentLastTimeCheckbox = document.getElementById("show_student_lasttime");
+        // studentLastTimeCheckbox.checked = show_student_lasttime;
 
         let show_button_back = false;
         if (items['skalp_show_button_back']!= null) show_button_back = items['skalp_show_button_back'];
