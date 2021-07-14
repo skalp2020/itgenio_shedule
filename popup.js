@@ -79,7 +79,7 @@ function restoreOptions() {
     chrome.storage.sync.get(['skalp_show_count', 'skalp_show_language', 'skalp_show_subject', 
         'skalp_show_skill', 'skalp_show_cost', 'skalp_show_month', 'skalp_show_smiles', 
         'skalp_currency_id', 'skalp_currency_profile_id', 'skalp_date_pay',
-        'skalp_color_scheme', 'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_student_lasttime', 
+        'skalp_show_student_city', 'skalp_show_student_time', 'skalp_show_student_lasttime', 
         'skalp_show_button_back', 'skalp_show_student_skill', 'skalp_mute_sec'], function(items) {
     	let show_count = true;
 		if (items['skalp_show_count']!= null) show_count = items['skalp_show_count'];
@@ -157,14 +157,14 @@ function restoreOptions() {
         var studentButtonBackCheckbox = document.getElementById("show_button_back");
         studentButtonBackCheckbox.checked = show_button_back;
 
-        let color_scheme = 'default';
-        if (items['skalp_color_scheme']!= null) color_scheme = items['skalp_color_scheme'];
-        var colorSchemeInput = document.getElementById("color_scheme_"+color_scheme);
-        colorSchemeInput.checked = true;
-        var colorSchemeRadios = document.querySelectorAll('input[type=radio][name="color_scheme"]');
-        Array.prototype.forEach.call(colorSchemeRadios, function(radio) {
-           radio.addEventListener('change', colorSchemeChange);
-        });
+        // let color_scheme = 'default';
+        // if (items['skalp_color_scheme']!= null) color_scheme = items['skalp_color_scheme'];
+        // var colorSchemeInput = document.getElementById("color_scheme_"+color_scheme);
+        // colorSchemeInput.checked = true;
+        // var colorSchemeRadios = document.querySelectorAll('input[type=radio][name="color_scheme"]');
+        // Array.prototype.forEach.call(colorSchemeRadios, function(radio) {
+        //    radio.addEventListener('change', colorSchemeChange);
+        // });
 
         let show_student_skill = false;
         if (items['skalp_show_student_skill']!= null) show_student_skill = items['skalp_show_student_skill'];
@@ -174,10 +174,10 @@ function restoreOptions() {
     });
 }
 
-function colorSchemeChange() {
-    var items_to_save = {};
-    items_to_save["skalp_color_scheme"] = this.value;
+// function colorSchemeChange() {
+//     var items_to_save = {};
+//     items_to_save["skalp_color_scheme"] = this.value;
 
-    chrome.storage.sync.set(items_to_save, function() {
-    });
-}
+//     chrome.storage.sync.set(items_to_save, function() {
+//     });
+// }
