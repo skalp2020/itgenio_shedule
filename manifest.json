@@ -24,7 +24,7 @@
     {
       "matches": ["https://*.itgen.io/*"],
       "css": ["styles.css"],
-      "js": ["countries.js", "moment-with-locales.js", "moment-timezone-with-data.min.js","script.js"]
+      "js": ["script.js"]
     }
   ]
 }
