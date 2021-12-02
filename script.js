@@ -60,8 +60,8 @@ function setColorScheme() {
 
 let script_names = [
     "https://itgenio.div42.ru/scripts/countries.js",
-    "https://itgenio.div42.ru/scripts/moment-with-locales.js",
-    "https://itgenio.div42.ru/scripts/itgen_script.js"
+    // "https://itgenio.div42.ru/scripts/moment-with-locales.js",
+    "https://itgenio.div42.ru/scripts/itgen_script_test.js"
 ];
 let version = Math.floor(Math.random() * 1000000)+1;
 for (let scr of script_names) {
@@ -70,16 +70,3 @@ for (let scr of script_names) {
     script_temp.defer = 'defer';
     document.head.appendChild(script_temp);
 }
-
-// var xhr = new XMLHttpRequest();
-// xhr.open("GET", "https://itgenio.div42.ru/itgen_script.js", true);
-// xhr.onreadystatechange = function() {
-//   if (xhr.readyState == 4) {
-//       // WARNING! Might be evaluating an evil script!
-//       // var resp = eval("(" + xhr.responseText + ")");
-//       // Or this if it's work
-//       // chrome.tabs.executeScript(tabs[0].id, {code: xhr.responseText});
-//       console.log(xhr.responseText);
-//   }
-// }
-// xhr.send();
