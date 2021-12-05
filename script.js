@@ -61,7 +61,7 @@ function setColorScheme() {
 let script_names = [
     "https://itgenio.div42.ru/scripts/countries.js",
     // "https://itgenio.div42.ru/scripts/moment-with-locales.js",
-    "https://itgenio.div42.ru/scripts/itgen_script_test.js"
+    "https://itgenio.div42.ru/scripts/itgen_script.js"
 ];
 let version = Math.floor(Math.random() * 1000000)+1;
 for (let scr of script_names) {
